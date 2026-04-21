@@ -1,362 +1,217 @@
 # -*- coding: utf-8 -*-
-# Tool Name: MOHA-02 ULTIMATE DUAL-CORE
-# Version: 6.0 (Special Edition)
-# Dev: Moha Al-Shalfawi (@m_oha_02)
-# Features: Re-create Mode & Combo Generator
+# Tool Name: MOHA-02 ULTIMATE V6.0
+# Developer: Moha Al-Shalfawi (@m_oha_02)
+# نظام صيد دائم - لا يتم مسح النتائج من الشاشة
 
 import os, sys, time, requests, json, random, threading, string, subprocess, re
 from datetime import datetime
-from concurrent.futures import ThreadPoolExecutor
-def logo():
-    os.system('clear' if os.name == 'posix' else 'cls')
-    # تأكد من استيراد render من cfonts في البداية
-    print(render('MOHA-02', colors=['green', 'yellow'], align='center'))
-    print(Fore.YELLOW + "—" * 55)
-    print(Fore.GREEN + " [•] DEVELOPER   : Moha Al-Shalfawi (@m_oha_02)")
-    print(Fore.GREEN + " [•] VERSION     : 6.0 (ULTIMATE DUAL-CORE)")
-    print(Fore.GREEN + " [•] STATUS      : ONLINE & READY")
-    print(Fore.YELLOW + "—" * 55)
 
 def setup():
-    packages = ['cloudscraper', 'python-cfonts', 'colorama', 'beautifulsoup4']
-    for p in packages:
+    pkgs = ['cloudscraper', 'python-cfonts', 'colorama', 'beautifulsoup4']
+    for p in pkgs:
         try: __import__(p)
         except ImportError: subprocess.check_call([sys.executable, "-m", "pip", "install", p])
 
 setup()
-
 from cfonts import render
 from colorama import Fore, Style, init
 init(autoreset=True)
 
+# الألوان والتعريفات
 F, Z, X, B, M, S, W, G = Fore.GREEN, Fore.RED, Fore.YELLOW, Fore.BLUE, Fore.MAGENTA, Fore.CYAN, Fore.WHITE, Fore.LIGHTBLACK_EX
+HITS_FILE = "Gimlaamm.txt" # ملف حفظ الكومبو والحسابات المسجلة
+RECREATE_FILE = "re-create_hits.txt" # ملف حفظ المتاحات للإنشاء
 
 hits, bad, checked = 0, 0, 0
 stop_thread = False
-ban_detected = False
-HITS_FILE = "moha_final_cache.txt"
-session_hits = []
 
-# قاعدة بيانات متصفحات ضخمة جداً لتجنب الحظر
+# قاعدة بيانات المتصفحات الضخمة (User-Agents) لضمان عدم الحظر
 BROWSER_DB = [
     "Mozilla/5.0 (Linux; Android 11; OPPO A16k Build/RP1A.200720.011) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.131 Mobile Safari/537.36",
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4 Mobile/15E148 Safari/604.1",
-    "Mozilla/5.0 (Linux; Android 13; SM-S918B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Mobile Safari/537.36",
-    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
+    "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4.1 Mobile/15E148 Safari/604.1",
+    "Mozilla/5.0 (Linux; Android 13; SM-G998B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Mobile Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36"
 ]
+
+def logo():
+    # لاحظ هنا: لم أضع os.system('clear') لكي لا يمسح صيدك القديم
+    print(render('MOHA-02', colors=['green', 'yellow'], align='center'))
+    print(f"{X}—"*55)
+    print(f"{F} [•] DEVELOPER : Moha Al-Shalfawi (@m_oha_02)")
+    print(f"{F} [•] STATUS    : ONLINE & SAVING DATA")
+    print(f"{X}—"*55)
 
 def get_h(m="web"):
     ua = random.choice(BROWSER_DB)
     h = {'User-Agent': ua, 'Accept': '*/*', 'Connection': 'keep-alive'}
     if m == "insta": h.update({'X-IG-App-ID': '936619743392459', 'X-Requested-With': 'XMLHttpRequest'})
-    elif m == "pubg": h.update({'Referer': 'https://www.pubgmobile.com/'})
     return h
 
-class Platforms:
+class Checkers:
     @staticmethod
-    def pubg(e):
-        # ثغرة فحص ببجي عبر ربط الإيميل
-        try:
-            r = requests.get(f"https://www.pubgmobile.com/id/event/p_code/check?email={e}", headers=get_h("pubg"), timeout=8)
-            return '"msg":"ok"' in r.text or "account" in r.text.lower()
-        except: return False
-
-    @staticmethod
-    def freefire(e):
-        # محاكاة فحص فري فاير (Garena)
-        try:
-            r = requests.post("https://auth.garena.com/api/v1/login/check_account", json={"account": e}, timeout=8)
-            return r.json().get('status') == 1
-        except: return False
-
-    @staticmethod
-    def twitter(e):
-        try:
-            r = requests.get(f"https://twitter.com/users/email_available?email={e}", headers=get_h(), timeout=8)
-            return '"taken":true' in r.text
-        except: return False
-
-    @staticmethod
-    def trading(e):
-        # فحص منصات التداول (Binance/Exness)
-        try:
-            r = requests.post("https://www.binance.com/bapi/accounts/v1/public/account/check-email", json={"email": e}, timeout=8)
-            return r.json().get('data') == True
-        except: return False
-
-    @staticmethod
-    def efootball(e):
-        try:
-            r = requests.get(f"https://my.konami.net/auth/checkEmail.html?email={e}", timeout=8)
-            return "registered" in r.text
-        except: return False
-
-    @staticmethod
-    def social(e):
-        # فحص فيسبوك، إنستا، تيك توك مدمج
+    def check_platforms(email):
         found = []
         try:
-            # Insta
-            ri = requests.post("https://www.instagram.com/api/v1/web/accounts/lookup_edit/", headers=get_h("insta"), data={'email': e}, timeout=7)
-            if '"status":"ok"' in ri.text: found.append("Instagram")
-            # FB
-            rf = requests.get(f"https://b-graph.facebook.com/recover_accounts?q={e}&access_token=350685531728|62f8ce9f74b12f84c123cc23437a4a32", timeout=7)
-            if "network_info" in rf.text: found.append("Facebook")
+            # Facebook
+            rf = requests.get(f"https://b-graph.facebook.com/recover_accounts?q={email}&access_token=350685531728|62f8ce9f74b12f84c123cc23437a4a32", timeout=7)
+            if "network_info" in rf.text: found.append(f"{B}Facebook")
+            # Instagram
+            ri = requests.post("https://www.instagram.com/api/v1/web/accounts/lookup_edit/", headers=get_h("insta"), data={'email': email}, timeout=7)
+            if '"status":"ok"' in ri.text: found.append(f"{F}Instagram")
             # TikTok
-            rt = requests.get(f"https://www.tiktok.com/api/v1/check/email/?email={e}&aid=1233", timeout=7)
-            if rt.json().get('is_registered') == 1: found.append("TikTok")
+            rt = requests.get(f"https://www.tiktok.com/api/v1/check/email/?email={email}&aid=1233", timeout=7)
+            if rt.json().get('is_registered') == 1: found.append(f"{S}TikTok")
+            # PUBG / Games
+            rp = requests.get(f"https://www.pubgmobile.com/id/event/p_code/check?email={email}", headers=get_h(), timeout=7)
+            if '"msg":"ok"' in rp.text: found.append(f"{X}PUBG")
         except: pass
         return found
 
-class Mailer:
     @staticmethod
-    def is_available(e, dom):
+    def is_creatable(email, dom):
         try:
             if 'gmail' in dom:
-                r = requests.get(f"https://mail.google.com/mail/gxlu?email={e}", headers=get_h(), timeout=10)
+                r = requests.get(f"https://mail.google.com/mail/gxlu?email={email}", headers=get_h(), timeout=8)
                 return 'COMPASS' not in str(r.headers)
-            elif 'mail.ru' in dom:
-                r = requests.get(f"https://account.mail.ru/api/v1/user/exists?email={e}", timeout=10)
-                return '"exists":false' in r.text
-            elif 'hotmail' in dom or 'outlook' in dom:
-                r = requests.post("https://login.live.com/GetCredentialType.srf", json={"username": e}, timeout=10)
-                return '"IfExistsResult":5' in r.text
             elif 'hi2.in' in dom:
-                r = requests.get(f"https://api.hi2.in/v1/check?email={e}", timeout=10)
+                r = requests.get(f"https://api.hi2.in/v1/check?email={email}", timeout=8)
                 return '"available":true' in r.text
+            elif 'mail.ru' in dom:
+                r = requests.get(f"https://account.mail.ru/api/v1/user/exists?email={email}", timeout=8)
+                return '"exists":false' in r.text
             return False
         except: return False
-class SmartGenerator:
+
+def save_data(file, data):
+    with open(file, "a", encoding="utf-8") as f:
+        f.write(data + "\n")
+class Generator:
     @staticmethod
-    def generate(prefix, total_len=None):
-        # إذا لم يتم تحديد طول، يتم اختيار طول عشوائي ذكي بين 7 و 10
-        if total_len is None or total_len == 0:
-            total_len = random.randint(7, 10)
-        
-        # خليط من الحروف الصغيرة والأرقام لضمان صيد حسابات حقيقية
+    def create_user(prefix, length):
+        # توليد يوزر ذكي (أحرف + أرقام)
         chars = string.ascii_lowercase + string.digits
+        if not length or length == 0:
+            length = random.randint(7, 10) # الطول التلقائي إذا ضغط المستخدم Enter
         
         if not prefix:
-            return ''.join(random.choice(chars) for _ in range(total_len))
+            return ''.join(random.choice(chars) for _ in range(length))
         
-        if len(prefix) >= total_len:
-            return prefix
-        
-        needed = total_len - len(prefix)
-        suffix = ''.join(random.choice(chars) for _ in range(needed))
-        return prefix + suffix
+        if len(prefix) >= length: return prefix
+        return prefix + ''.join(random.choice(chars) for _ in range(length - len(prefix)))
 
-def discovery_all_platforms(email):
-    """محرك فحص شامل يجمع كل المنصات والألعاب التي طلبتها"""
-    found = []
-    # فحص التواصل الاجتماعي
-    social_hits = Platforms.social(email)
-    if social_hits: found.extend(social_hits)
+def hunter_core(mode, prefix, length, domains):
+    global hits, bad, checked, stop_thread
     
-    # فحص الألعاب (ببجي، فري فاير، فوتبول)
-    if Platforms.pubg(email): found.append(f"{X}PUBG")
-    if Platforms.freefire(email): found.append(f"{F}FreeFire")
-    if Platforms.efootball(email): found.append(f"{B}eFootball")
-    
-    # فحص التداول وتويتر وسناب
-    if Platforms.twitter(email): found.append(f"{S}Twitter")
-    if Platforms.trading(email): found.append(f"{M}Trading")
-    
-    return found
-
-def hunter_engine_logic(mode, prefix, length, domains, token, chat_id):
-    global hits, bad, checked, stop_thread, session_hits
-    
+    # تحذير: لا يوجد os.system('clear') هنا للحفاظ على سجل الصيد
     while not stop_thread:
         try:
-            # توليد يوزر (أحرف + أرقام)
-            user = SmartGenerator.generate(prefix, length)
-            
+            user = Generator.create_user(prefix, length)
             for dom in domains:
                 email = f"{user}@{dom}"
                 checked += 1
                 
-                if mode == "1": # وضع المتاحات (قابل للإنشاء + مرتبط)
-                    if Mailer.is_available(email, dom):
-                        linked = discovery_all_platforms(email)
-                        if linked:
+                # الخيار الأول: صيد متاح (قابل للإنشاء + مرتبط)
+                if mode == "1":
+                    if Checkers.is_creatable(email, dom):
+                        platforms = Checkers.check_platforms(email)
+                        if platforms:
                             hits += 1
-                            platforms_str = " + ".join([re.sub(r'\033\[[0-9;]*m', '', p) for p in linked])
-                            res = f"AVAILABLE: {email} | Linked: {platforms_str}"
-                            save_and_display_hit(res, linked, email, "AVAILABLE")
-                            if token and chat_id:
-                                send_telegram_final(token, chat_id, res)
+                            result = f" {hits} - AVAILABLE & LINKED: {email} | Platforms: {' + '.join(platforms)}"
+                            print(Fore.GREEN + result) # طباعة خضراء ثابتة
+                            save_data(RECREATE_FILE, result)
                         else:
-                            print(f"{G} [FREE] {email} (No Platforms)", end="\r")
+                            print(Fore.WHITE + f" [SCANNING] {email} (No Platforms)", end="\r")
                     else:
                         bad += 1
-                        print(f"{G} [TAKEN] {email}", end="\r")
 
-                elif mode == "2": # وضع الكومبو (مسجل + مرتبط فقط)
-                    linked = discovery_all_platforms(email)
-                    if linked:
+                # الخيار الثاني: إنشاء ملف كومبو (مسجل + مرتبط)
+                elif mode == "2":
+                    platforms = Checkers.check_platforms(email)
+                    if platforms:
                         hits += 1
-                        platforms_str = " + ".join([re.sub(r'\033\[[0-9;]*m', '', p) for p in linked])
-                        res = f"REGISTERED: {email} | Linked: {platforms_str}"
-                        save_and_display_hit(res, linked, email, "REGISTERED")
-                        if token and chat_id:
-                            send_telegram_final(token, chat_id, res)
+                        # حفظ في ملف Gimlaamm.txt كما طلبت
+                        result = f"{email} | {' + '.join(platforms)}"
+                        print(Fore.CYAN + f" {hits} - HIT (COMBO): {result}")
+                        save_data(HITS_FILE, result)
                     else:
                         bad += 1
-                        print(f"{G} [SCAN] {email} (Not Linked)", end="\r")
+                        print(Fore.YELLOW + f" [CHECKING] {email}...", end="\r")
             
-            time.sleep(random.uniform(0.01, 0.03))
-        except:
-            continue
+            time.sleep(0.01) # سرعة عالية جداً لجهاز OPPO A16k
+        except Exception: continue
 
-def save_and_display_hit(full_res, linked, email, tag):
-    global session_hits
-    if full_res not in session_hits:
-        session_hits.append(full_res)
-        with open(HITS_FILE, "a", encoding="utf-8") as f:
-            f.write(full_res + "\n")
-        
-        # طباعة فخمة في تريمكس عند الصيد
-        color = F if tag == "AVAILABLE" else S
-        print(f"\n{color} [{tag}] {email} ➜ {', '.join(linked)}{R}")
+def start_session(mode):
+    global stop_thread, hits, bad, checked
+    
+    # إعدادات النطاقات (Gmail, Mail.ru, Hotmail, Hi2.in)
+    print(f"\n{M} [?] SELECT DOMAIN: [1] gmail.com [2] mail.ru [3] hi2.in [4] ALL")
+    dom_choice = input(f"{M} [?] YOUR CHOICE: ")
+    dom_map = {'1':['gmail.com'], '2':['mail.ru','bk.ru'], '3':['hi2.in'], '4':['gmail.com','mail.ru','hi2.in','hotmail.com']}
+    selected_doms = dom_map.get(dom_choice, ['gmail.com'])
 
-def send_telegram_final(token, cid, msg):
-    try:
-        url = f"https://api.telegram.org/bot{token}/sendMessage"
-        data = {"chat_id": cid, "text": f"🔥 <b>MOHA-02 ULTIMATE HIT!</b>\n\n{msg}", "parse_mode": "HTML"}
-        requests.post(url, json=data, timeout=5)
-    except: pass
-
-def load_cache():
-    global session_hits
-    if os.path.exists(HITS_FILE):
-        with open(HITS_FILE, "r", encoding="utf-8") as f:
-            session_hits = [line.strip() for line in f.readlines() if line.strip()]
-    return len(session_hits)
-def domain_picker():
-    logo()
-    print(f"{X} [!] SELECT EMAIL DOMAIN FOR SCANNING:")
-    print(f"{G}—"*55)
-    print(f"{F} [01] GMAIL.COM        [02] HOTMAIL.COM")
-    print(f"{F} [03] MAIL.RU          [04] HI2.IN")
-    print(f"{F} [05] OUTLOOK.COM      [06] MIXED (ALL)")
-    print(f"{G}—"*55)
-    choice = input(f"{M} [?] SELECT TYPE: ")
+    prefix = input(f"{M} [?] ENTER INITIAL NAME (Prefix) / Enter for Random: ")
+    length_in = input(f"{M} [?] TOTAL LENGTH (7-10) / Enter for Auto: ")
+    length = int(length_in) if length_in.isdigit() else 0
     
-    mapping = {
-        '1': ['gmail.com'], '2': ['hotmail.com'],
-        '3': ['mail.ru', 'bk.ru', 'list.ru'], '4': ['hi2.in'],
-        '5': ['outlook.com'],
-        '6': ['gmail.com', 'hotmail.com', 'mail.ru', 'hi2.in', 'outlook.com']
-    }
-    return mapping.get(choice, ['mail.ru'])
-
-def start_hunting_session(mode):
-    global hits, bad, checked, stop_thread
-    
-    domains = domain_picker()
-    
-    logo()
-    prefix = input(f"{M} [?] ENTER INITIAL NAME (Prefix) [Enter for None]: ")
-    
-    len_input = input(f"{M} [?] TOTAL USER LENGTH (Enter for Auto 7-10): ")
-    length = int(len_input) if len_input.isdigit() else 0
-    
-    token = input(f"{M} [?] BOT TOKEN (Optional): ")
-    chat_id = input(f"{M} [?] CHAT ID (Optional): ")
-    
-    # تصفير العدادات وبدء التوقيت
     hits, bad, checked = 0, 0, 0
     stop_thread = False
-    start_time = time.time()
-    mode_name = "AVAILABLE HUNT" if mode == "1" else "COMBO GENERATOR"
     
-    # تشغيل خيط المراقبة الحية (Monitor)
-    threading.Thread(target=live_ui_monitor, args=(start_time, 40, prefix, mode_name), daemon=True).start()
-    
-    # إطلاق 40 خيطاً للصيد المتوازي (أحرف + أرقام)
+    print(f"\n{X}—"*55)
+    print(f"{F} [!] STARTING 40 THREADS... DATA SAVING TO {HITS_FILE if mode=='2' else RECREATE_FILE}")
+    print(f"{X}—"*55 + "\n")
+
+    # إطلاق 40 خيطاً (Threads) لأقصى قوة صيد
     for _ in range(40):
-        threading.Thread(target=hunter_engine_logic, args=(mode, prefix, length, domains, token, chat_id), daemon=True).start()
+        threading.Thread(target=hunter_core, args=(mode, prefix, length, selected_doms), daemon=True).start()
     
-    input(f"\n{W} [*] SYSTEM IS RUNNING. PRESS ENTER TO RETURN TO MENU...")
+    input(f"{W} [*] RUNNING... PRESS ENTER TO STOP AND SAVE SESSION.")
     stop_thread = True
-
-def live_ui_monitor(start_time, threads, prefix, mode_name):
-    global hits, bad, checked, stop_thread, session_hits
-    while not stop_thread:
-        elapsed = int(time.time() - start_time)
-        logo()
-        print(f"{S} [📊] MONITORING | THREADS: {threads} | MODE: {mode_name}")
-        print(f"{S} [🔍] PREFIX: {prefix if prefix else 'Smart-Mix'} | TARGET: Multi-Platforms")
-        print(f"{X}—"*55)
-        print(f"{F} [✔] SUCCESSFUL HITS : {hits}")
-        print(f"{Z} [✘] TOTAL FAILED    : {bad}")
-        print(f"{W} [⚡] TOTAL ATTEMPTS  : {checked}")
-        print(f"{W} [⌚] RUNNING TIME    : {elapsed}s")
-        print(f"{X}—"*55)
-        
-        # عرض آخر 5 صيدات مسجلة للنسخ الفوري
-        if session_hits:
-            print(f"{GL} [★] RECENT HITS IN CACHE (DO NOT CLOSE):")
-            for h in session_hits[-5:]:
-                # تمييز الإيميلات في العرض
-                print(f"  ➜ {h[:50]}...")
-            print(f"{X}—"*55)
-        time.sleep(3.5)
-
 def main_menu_v6():
-    # تحميل السجلات القديمة عند التشغيل لضمان عدم الحذف
-    total_saved = load_cache()
+    # تحميل الكاش عند التشغيل لعرض عدد الصيدات المحفوظة في تريمكس
+    total_saved = 0
+    if os.path.exists(HITS_FILE):
+        with open(HITS_FILE, "r") as f: total_saved = len(f.readlines())
     
     while True:
-        logo()
-        print(f"{S} [01] FIND AVAILABLE & LINKED (Re-create Mode)")
-        print(f"{S} [02] COMBO GENERATOR (Registered Platforms)")
-        print(f"{S} [03] SHOW ALL SAVED HITS (History: {total_saved})")
-        print(f"{S} [04] CLEAN CACHE / RESET ALL DATA")
-        print(f"{Z} [00] EXIT MOHA-02 SYSTEM")
+        logo() # تعرض اللوجو ومعلومات المطور Moha Al-Shalfawi
+        print(f"{S} [01] صيد متاح (قابل للإنشاء + مرتبط بمنصة)")
+        print(f"{S} [02] إنشاء ملف كومبو (مسجل + مرتبط - يحفظ في {HITS_FILE})")
+        print(f"{S} [03] عرض السجلات المحفوظة (History)")
+        print(f"{Z} [00] خروج من النظام")
         print(f"{X}—"*55)
         
-        opt = input(f"{M} [?] CHOOSE OPTION: ")
+        opt = input(f"{M} [?] اختر الأمر المناسب: ")
         
         if opt in ['01', '1']:
-            start_hunting_session("1")
+            start_session("1")
         elif opt in ['02', '2']:
-            start_hunting_session("2")
+            start_session("2")
         elif opt in ['03', '3']:
-            show_full_history()
-        elif opt in ['04', '4']:
-            clear_history()
+            show_history_v6()
         elif opt in ['00', '0']:
-            print(f"\n{Z} [!] SHUTTING DOWN... SEE YOU MOCHA!"); sys.exit()
+            print(f"\n{Z} [!] يتم الإغلاق.. بالتوفيق في الصيد يا موحا!"); sys.exit()
 
-def show_full_history():
-    logo()
-    print(f"{F} [★] TOTAL HITS STORED IN DEVICE CACHE:")
-    print(f"{W}—"*55)
-    if not session_hits:
-        print(f"{Z} [!] No hits found in history.")
+def show_history_v6():
+    # عرض الصيدات المحفوظة في Gimlaamm.txt دون مسح السجل
+    print(f"\n{F} [★] السجلات المحفوظة في ملف الكومبو:")
+    if os.path.exists(HITS_FILE):
+        with open(HITS_FILE, "r") as f:
+            data = f.readlines()
+            for line in data[-20:]: # عرض آخر 20 صيدة لسهولة النسخ
+                print(f"{W}  ➜ {line.strip()}")
     else:
-        for i, hit in enumerate(session_hits, 1):
-            print(f" [{i:03}] {hit}")
-    print(f"{W}—"*55)
-    input(f"{X} [!] Press ENTER to return to menu...")
-
-def clear_history():
-    global session_hits
-    confirm = input(f"{Z} [!] DELETE ALL SAVED DATA? (y/n): ")
-    if confirm.lower() == 'y':
-        if os.path.exists(HITS_FILE): os.remove(HITS_FILE)
-        session_hits = []
-        print(f"{F} [✔] Cache Cleared!"); time.sleep(2)
+        print(f"{Z} [!] لا توجد بيانات محفوظة بعد.")
+    input(f"\n{X} [!] اضغط Enter للعودة للقائمة...")
 
 if __name__ == "__main__":
     try:
+        # التأكد من وجود ملفات الحفظ لعدم حدوث خطأ
+        for f in [HITS_FILE, RECREATE_FILE]:
+            if not os.path.exists(f): open(f, "a").close()
+            
         main_menu_v6()
     except KeyboardInterrupt:
-        print(f"\n{Z} [!] CLOSED BY USER."); sys.exit()
+        print(f"\n{Z} [!] تم إيقاف التشغيل بواسطة المستخدم."); sys.exit()
     except Exception as e:
-        print(f"\n{Z} [!] FATAL ERROR: {e}"); time.sleep(5); sys.exit()
+        print(f"\n{Z} [!] خطأ غير متوقع: {e}"); time.sleep(5); sys.exit()
