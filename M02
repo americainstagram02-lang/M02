@@ -682,7 +682,7 @@ if __name__ == "__main__":
     try:
         main_menu()
     except KeyboardInterrupt:
-        global stop_thread
+        global stop_thread  # هذا السطر يجب أن يكون الأول هنا
         stop_thread = True
         print(f"\n{Z} [!] تم إيقاف النظام بواسطة المستخدم.")
         sys.exit()
