@@ -682,14 +682,10 @@ if __name__ == "__main__":
     try:
         main_menu()
     except KeyboardInterrupt:
-        global stop_thread  # هذا السطر يجب أن يكون الأول هنا
+        global stop_thread  # يجب أن يكون التعريف هنا هو أول سطر داخل except
         stop_thread = True
         print(f"\n{Z} [!] تم إيقاف النظام بواسطة المستخدم.")
         sys.exit()
     except Exception as e:
         print(f"\n{Z} [!] حدث خطأ غير متوقع: {e}")
         sys.exit()
-
-# —————————————————————————————————————————————————————
-# END OF CODE | MOHA-02 SYSTEM V3.5 | ALL DATA INJECTED
-# —————————————————————————————————————————————————————
