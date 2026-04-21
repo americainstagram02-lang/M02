@@ -471,4 +471,27 @@ def main_menu():
         elif choice in ['02', '2']:
             logo()
             print(f"{S} [!] COMBO CHECKER MODE")
-            file_path = input(f"{M
+            file_path = input(f"{M} [?] ENTER LIST PATH: ")
+            token = input(f"{M} [?] BOT TOKEN: ")
+            chat_id = input(f"{M} [?] CHAT ID: ")
+            # يمكنك هنا إضافة استدعاء دالة الفحص إذا كانت جاهزة
+        elif choice in ['03', '3']:
+            list_generator_engine()
+        elif choice in ['04', '4']:
+            logo()
+            print(f"{F} [1] Custom Pass [2] Wordlist [3] Smart Mode")
+            b_mode = input(f"{M} [?] SELECT BRUTE MODE: ")
+            f_path = input(f"{M} [?] EMAILS FILE: ")
+            tkn = input(f"{M} [?] BOT TOKEN: ")
+            cid = input(f"{M} [?] CHAT ID: ")
+            smart_brute_force_engine(f_path, tkn, cid, b_mode)
+        elif choice in ['00', '0']:
+            print(f"{Z} [!] EXITING SYSTEM... BYE!")
+            sys.exit()
+
+if __name__ == "__main__":
+    try:
+        main_menu()
+    except KeyboardInterrupt:
+        print(f"\n{Z} [!] STOPPED BY USER.")
+        sys.exit()
