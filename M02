@@ -7,6 +7,15 @@
 import os, sys, time, requests, json, random, threading, string, subprocess, re
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor
+def logo():
+    os.system('clear' if os.name == 'posix' else 'cls')
+    # تأكد من استيراد render من cfonts في البداية
+    print(render('MOHA-02', colors=['green', 'yellow'], align='center'))
+    print(Fore.YELLOW + "—" * 55)
+    print(Fore.GREEN + " [•] DEVELOPER   : Moha Al-Shalfawi (@m_oha_02)")
+    print(Fore.GREEN + " [•] VERSION     : 6.0 (ULTIMATE DUAL-CORE)")
+    print(Fore.GREEN + " [•] STATUS      : ONLINE & READY")
+    print(Fore.YELLOW + "—" * 55)
 
 def setup():
     packages = ['cloudscraper', 'python-cfonts', 'colorama', 'beautifulsoup4']
