@@ -1266,11 +1266,12 @@ class InteractionSimulator:
     """
     @staticmethod
     def perform_first_activity(session, headers):
-                UIComponents.show_progress("Simulating first human interaction (Newsfeed Scroll)")
+                        UIComponents.show_progress("Simulating first human interaction (Newsfeed Scroll)")
         try:
             # Visit the home feed
             feed = session.get("https://mbasic.facebook.com/home.php", headers=headers)
             HumanBehavior.think(5, 10)
+
             
             # Find the first 'Like' link in the HTML
             soup = BeautifulSoup(feed.text, 'html.parser')
