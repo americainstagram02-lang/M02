@@ -62,15 +62,16 @@ class UIComponents:
     def separator():
         print(f"{W}--------------------------------------------{X}")
 
-        @staticmethod
+            @staticmethod
     def show_progress(text):
         chars = "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏"
         for i in range(10):
-            # تم تصحيح الأقواس هنا بعناية
+            # تم ضبط الإزاحة والأقواس بشكل صحيح هنا
             sys.stdout.write(f"\r{Y} [{chars[i % len(chars)}] {text}...{X}")
             sys.stdout.flush()
             time.sleep(0.1)
         print()
+
 
 
     @staticmethod
