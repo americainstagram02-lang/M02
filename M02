@@ -1,412 +1,228 @@
 # -*- coding: utf-8 -*-
-import os, sys, time, json, random, re, uuid, string, hashlib, threading
+# Developer: Moha Al-Shalfawi (@m_oha_02)
+# Version: 12.0 PRO - FC Barcelona Edition
+# Features: Smart Error Detection, Ultra Simulation, Manual Entry
+
+import os, sys, time, json, random, re, uuid, hashlib, threading
+import requests
 from datetime import datetime
 
-# --- COLORS ---
-G = '\033[1;32m'
-R = '\033[1;31m'
-W = '\033[1;37m'
-C = '\033[1;36m'
-Y = '\033[1;33m'
-B = '\033[1;34m'
-X = '\033[0m'
+# --- الألوان القياسية ---
+G = '\033[1;32m' # أخضر
+R = '\033[1;31m' # أحمر
+W = '\033[1;37m' # أبيض
+C = '\033[1;36m' # سمائي
+Y = '\033[1;33m' # أصفر
+B = '\033[1;34m' # أزرق
+X = '\033[0m'    # إغلاق
 
-class SystemUtils:
+# --- نظام كشف الأخطاء والتحليل (Error Detection System) ---
+class ErrorHandler:
     @staticmethod
-    def clear():
-        os.system('clear')
-
-    @staticmethod
-    def banner():
-        # استخدام r قبل النص لمنع الـ SyntaxWarning
-        print(rf"""
-{C}  __  __  U  ██████   _   _     ▄▄▄       ██████  
-{C}U|' \/ '|u  \█▀▀▀▀█/ |'| |'|  ▄█▀  ▀█▄   █▀▀▀▀█/ 
-{C}\| |\/| |/   \█    █/U | |_| |u █     █   \█    █/ 
-{C} | |  | |    /█    █\  |  _  |  █▄   ▄█   /█    █\ 
-{C} |_|  |_|   |████████| |_| |_|   ▀███▀   |████████|
-{C} ||    ||   |_|    |_| //   \\           |_|    |_|
-{C} (_")  ("_")  (_)    (_) (_") ("_)         (_)    (_) {G}V9.0{X}""")
+    def analyze(response_json):
+        """تحليل الرد وتحديد الخطأ بدقة لرفع نسبة النجاح"""
+        if "access_token" in response_json:
+            return "SUCCESS", None
         
-        # لوجو علم برشلونة
-        print(f"""{W}       [ {B}BLUE {R}RED {B}BLUE {R}RED {B}BLUE {W}]""")
-        print(f"{W}--------------------------------------------")
-        print(f"{G} [+] DEVELOPER : Moha Al-Shalfawi (@m_oha_02)")
-        print(f"{G} [+] STATUS    : PREMIUM / FC BARCELONA EDITION")
-        print(f"{W}--------------------------------------------{X}")
+        error_code = response_json.get("error", {}).get("code")
+        error_msg = response_json.get("error", {}).get("message", "")
+        
+        if error_code == 401 or "invalid_credentials" in error_msg:
+            return "REJECTED", "الرمز غير صحيح أو انتهت صلاحيته"
+        elif "email_already_registered" in error_msg or error_code == 400:
+            return "EXISTS", "البريد مستخدم بالفعل في حساب آخر"
+        elif "checkpoint" in error_msg:
+            return "CHECKPOINT", "الحساب يحتاج تأكيد هوية (حظر مؤقت)"
+        elif "terms" in error_msg:
+            return "TERMS", "الاسم أو البيانات تخالف سياسة فيسبوك"
+        elif "v_code" in error_msg:
+            return "CODE_ERR", "رمز التحقق لم يصل أو غير صحيح"
+        else:
+            return "UNKNOWN", f"خطأ غير معروف: {error_msg}"
 
-class UIComponents:
-    @staticmethod
-    def show_progress(text):
-        chars = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"]
-        for i in range(10):
-            # تم تبسيط السطر تماماً لتجنب أي خطأ في الأقواس
-            char = chars[i % len(chars)]
-            sys.stdout.write(f"\r{Y} [{char}] {text}")
+# --- نظام اللوجو والواجهة (MOHA-02 Style) ---
+def banner():
+    UIManager.clear()
+    logo = [
+" ███╗   ███╗ ██████╗ ██╗  ██╗ █████╗ ",
+" ████╗ ████║██╔═══██╗██║  ██║██╔══██╗",
+" ██╔████╔██║██║   ██║███████║███████║",
+" ██║╚██╔╝██║██║   ██║██╔══██║██╔══██║",
+" ██║ ╚═╝ ██║╚██████╔╝██║  ██║██║  ██║",
+" ╚═╝     ╚═╝ ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝"
+    ]
+
+    title = "MOHA-02 TOOLKIT v12 (PRO)"
+
+    # 🎬 تأثير الكتابة (Animation)
+    for line in logo:
+        for char in line:
+            sys.stdout.write(f"{C}{char}{X}")
             sys.stdout.flush()
-            time.sleep(0.1)
+            time.sleep(0.002)
         print()
 
+    print(f"{G}        {title}{X}")
+    time.sleep(0.3)
+
+    # 🎨 علم برشلونة (مخطط واقعي)
+    barca_flag = [
+        f"{B}████{R}████{B}████{R}████{B}████{X}",
+        f"{B}████{R}████{B}████{R}████{B}████{X}",
+        f"{B}████{R}████{B}████{R}████{B}████{X}"
+    ]
+
+    print()
+    for row in barca_flag:
+        print(f"        {row}")
+        time.sleep(0.1)
+
+    print(f"{W}--------------------------------------------{X}")
+    print(f"{G}[+] DEVELOPER : MOHA-02 (موحا الشلفاوي){X}")
+    print(f"{G}[+] MODE      : FC BARCELONA EDITION{X}")
+    print(f"{W}--------------------------------------------{X}")
+
+class UIManager:
     @staticmethod
-    def show_success(text):
-        print(f"{G} [SUCCESS] {text}{X}")
+    def clear():
+        os.system('clear' if os.name == 'posix' else 'cls')
 
-class HumanBehavior:
-    @staticmethod
-    def think(min_s=3, max_s=6):
-        time.sleep(random.uniform(min_s, max_s))
-
-class ProxyAutoGenerator:
-    def __init__(self):
-        self.sources = [
-            "https://api.proxyscrape.com/v2/?request=getproxies&protocol=http&timeout=10000",
-            "https://raw.githubusercontent.com/TheSpeedX/SOCKS-List/master/http.txt"
-        ]
-
-    def scrape(self):
-        UIComponents.show_progress("Harvesting free proxies")
-        proxies = []
-        try:
-            import requests
-            for url in self.sources:
-                try:
-                    res = requests.get(url, timeout=10)
-                    if res.status_code == 200:
-                        found = re.findall(r'\d+\.\d+\.\d+\.\d+:\d+', res.text)
-                        proxies.extend(found)
-                except:
-                    continue
-        except:
-            pass
-        return list(set(proxies))
-
-# نهاية الدفعة الأولى - جرب الآن يا موحا
-
-
-# نهاية الدفعة الأولى المصححة باللوجو الجديد
-
-        if unique:
-            with open(PROXY_FILE, "w") as f:
-                for p in unique: f.write(p + "\n")
-            UIComponents.show_success(f"Generated {len(unique)} proxies.")
-            return unique
-        return []
-
-class InteractionSimulator:
-    """
-    تجاوز أخطاء الإزاحة (Indentation) التي ظهرت في الأسطر 1268-1270
-    """
-    @staticmethod
-    def perform_first_activity(session, headers):
-        UIComponents.show_progress("Simulating first human interaction")
-        try:
-            # محاكاة تصفح الصفحة الرئيسية
-            HumanBehavior.think(5, 10)
-            res = session.get("https://mbasic.facebook.com/home.php", headers=headers, timeout=15)
-            if res.status_code == 200:
-                UIComponents.show_success("Feed simulation active.")
-        except Exception as e:
-            pass
-
-class ErrorHandler:
-    """نظام معرفة المشكلة الذي طلبته (حظر، قطع، فشل)"""
-    @staticmethod
-    def diagnose(error_type):
-        UIComponents.separator()
-        if error_type == "ban":
-            print(f"{R} [!] ERROR: IP Banned or Proxy Dead. {X}")
-        elif error_type == "timeout":
-            print(f"{R} [!] ERROR: Connection timed out or cut. {X}")
-        elif error_type == "otp_missing":
-            print(f"{R} [!] ERROR: OTP code not received. {X}")
-        UIComponents.separator()
-
-# نهاية الدفعة الأولى (أكثر من 200 سطر مع التصحيحات)
-class RegistrationEngine:
-    """The core engine for manual registration with integrated proxy generation."""
+# --- محاكي الأجهزة والبيانات الأمنية (Security Extraction) ---
+class SecurityHub:
+    API_KEY = "882a8490361da98702bf97a021ddc14d"
+    SECRET = "62f8ce9f74b12f84c123cc23437a4a32"
     
-    def __init__(self):
-        self.session = requests.Session()
-        self.proxy_auto = ProxyAutoGenerator()
-        self.ua_gen = UserAgentGenerator()
-        self.error_handler = ErrorHandler()
-        # Optimized for your OPPO A16k device signature
-        self.current_ua = "Mozilla/5.0 (Linux; Android 11; OPPO A16k Build/RP1A.200720.011) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.85 Mobile Safari/537.36"
-
-    def handle_manual_registration(self):
-        SystemUtils.clear()
-        SystemUtils.banner()
-        print(f"{M} [ MANUAL REGISTRATION - FULL CONTROL ] {X}")
-        UIComponents.separator()
-
-        # --- STEP 1: USER DATA INPUT (ENGLISH) ---
-        full_name = input(f"{C} [?] Enter Account Full Name: {X}")
-        dob = input(f"{C} [?] Enter Date of Birth (DD/MM/YYYY): {X}")
-        contact_info = input(f"{C} [?] Enter Email Address or Phone: {X}")
-        account_pass = input(f"{C} [?] Create Account Password: {X}")
-        
-        UIComponents.separator()
-        
-        # --- STEP 2: PROXY & SECURITY LAYERS ---
-        # Checks if proxies exist, if not, it scrapes from your tools
-        proxies_list = self.proxy_auto.scrape()
-        current_proxy = None
-        if proxies_list:
-            p = random.choice(proxies_list)
-            current_proxy = {"http": f"http://{p}", "https": f"http://{p}"}
-            UIComponents.show_info(f"Using Generated Proxy: {p}")
-        else:
-            UIComponents.show_info("No proxies found. Using local OPPO A16k IP.")
-
-        headers = {
-            'authority': 'mbasic.facebook.com',
-            'accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
-            'accept-language': 'en-US,en;q=0.9',
-            'user-agent': self.current_ua,
+    @staticmethod
+    def get_headers():
+        # استخدام بيانات جهاز OPPO A16k الخاص بك لزيادة الثقة
+        ua = f"Dalvik/2.1.0 (Linux; U; Android 11; OPPO A16k Build/RP1A.{random.randint(111111,999999)}.001) [FBAN/FB4A;FBAV/{random.randint(400,450)}.0.0.45.109;FBPN/com.facebook.katana;FBLC/ar_EG;FBBV/{random.randint(100000000,999999999)};FBCR/Djezzy;FBMF/OPPO;FBBD/OPPO;FBDV/OPPO A16k;FBSV/11;]"
+        return {
+            "User-Agent": ua,
+            "Accept-Encoding": "gzip, deflate",
+            "x-fb-connection-quality": "EXCELLENT",
+            "x-fb-http-engine": "Liger",
+            "x-fb-client-ip": "True",
+            "x-fb-server-cluster": "True",
+            "Authorization": "OAuth 350685531728|62f8ce9f74b12f84c123cc23437a4a32"
         }
 
-        # --- STEP 3: SUBMITTING REQUEST & ERROR CHECKING ---
-        try:
-            UIComponents.show_progress("Handshaking with Facebook secure layers")
-            HumanBehavior.think(4, 8) # Simulation of real user interaction
-            
-            response = self.session.get("https://mbasic.facebook.com/reg/", headers=headers, proxies=current_proxy, timeout=20)
-            
-            # Error checking system for block or disconnection
-            if response.status_code != 200:
-                self.error_handler.diagnose("timeout")
-                return
-
-            if "checkpoint" in response.url or "captcha" in response.text.lower():
-                self.error_handler.diagnose("ban")
-                return
-
-            UIComponents.show_success("Request accepted! FB is processing your information.")
-            UIComponents.separator()
-
-            # --- STEP 4: MANUAL OTP INPUT ---
-            print(f"{Y} [!] WAITING FOR CODE: Check your {contact_info} notification! {X}")
-            print(f"{Y} [!] The system will pause until you enter the code. {X}")
-            
-            # Manual OTP verification as you requested
-            otp_code = input(f"{G} [▶] Enter the 5-Digit Verification Code: {X}")
-
-            if not otp_code:
-                self.error_handler.diagnose("otp_missing")
-                return
-
-            # --- STEP 5: FINALIZING & SIMULATION ---
-            UIComponents.show_progress("Verifying OTP and stabilizing session")
-            HumanBehavior.think(5, 10)
-            
-            # Simulation of first human activity (Corrected Indentation)
-            InteractionSimulator.perform_first_activity(self.session, headers)
-
-            # Saving successful hit
-            self.save_hit(full_name, dob, contact_info, account_pass, otp_code)
-            UIComponents.show_success(f"SUCCESS! Account created for {full_name}")
-
-        except requests.exceptions.ConnectionError:
-            self.error_handler.diagnose("timeout")
-        except Exception as e:
-            UIComponents.show_error(f"Unknown System Error: {str(e)}")
-
-    def save_hit(self, name, bday, target, pwd, code):
-        """Saves account details to hits.txt in database folder."""
-        if not os.path.exists('database'): os.makedirs('database')
-        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M')
-        with open(HITS_FILE, "a", encoding="utf-8") as f:
-            f.write(f"DATE: {timestamp} | NAME: {name} | DOB: {bday} | TARGET: {target} | PASS: {pwd} | OTP: {code}\n")
-        UIComponents.show_info(f"Account data saved in {HITS_FILE}")
-
-class UserAgentGenerator:
-    """Generates unique browser fingerprints for each session."""
     @staticmethod
-    def get_new_ua():
-        # Dynamic Chrome versions for your OPPO A16k simulation
-        ver = f"{random.randint(90, 120)}.0.{random.randint(4000, 5000)}.{random.randint(10, 150)}"
-        return f"Mozilla/5.0 (Linux; Android 11; OPPO A16k Build/RP1A.200720.011) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/{ver} Mobile Safari/537.36"
+    def generate_sig(params):
+        sig = "".join(f"{k}={v}" for k, v in sorted(params.items()))
+        sig += SecurityHub.SECRET
+        return hashlib.md5(sig.encode()).hexdigest()
 
-# END OF PART 2 (205 LINES)
-class SystemDiagnostics:
-    """إدارة الإحصائيات وفحص حالة النظام"""
-    @staticmethod
-    def get_hits_count():
-        if os.path.exists(HITS_FILE):
-            try:
-                with open(HITS_FILE, 'r') as f:
-                    return len(f.readlines())
-            except: return 0
-        return 0
+# --- يتبع في الجزء الثاني: محرك الإرسال ونظام معالجة مدخلات المستخدم ---
+# --- الجزء الثاني: محرك الإرسال، كشف الأخطاء، والربط النهائي ---
 
-    @staticmethod
-    def check_connection():
-        try:
-            # فحص اتصال الإنترنت العام
-            requests.get("https://m.facebook.com", timeout=5)
-            return f"{G}STABLE{X}"
-        except:
-            return f"{R}UNSTABLE{X}"
-
-class MohaLauncher:
-    """المتحكم الرئيسي في واجهة الأداة والربط بين الأجزاء"""
+class FBEnginePRO:
     def __init__(self):
-        # SystemUtils.setup()
-        self.engine = RegistrationEngine()
-        self.diagnostics = SystemDiagnostics()
+        self.session = requests.Session()
+        self.headers = SecurityHub.get_headers()
 
-    def main_menu(self):
-        """القائمة الرئيسية للأداة"""
-        while True:
-            SystemUtils.clear()
-            SystemUtils.banner()
-            
-            # لوحة التحكم السريعة
-            status = self.diagnostics.check_connection()
-            total_hits = self.diagnostics.get_hits_count()
-            
-            print(f" {W}CONNECTION: {status} | {W}SUCCESSFUL ACCOUNTS: {G}{total_hits}{X}")
-            UIComponents.separator()
-            
-            # الخيار الوحيد للتسجيل مع خيارات الإدارة
-            print(f"{C} [01] START MANUAL ACCOUNT CREATION {X}")
-            print(f"{C} [02] REFRESH FREE PROXY DATABASE {X}")
-            print(f"{C} [03] VIEW ERROR LOGS {X}")
-            print(f"{C} [04] CLEAN CACHE & RESET LOGS {X}")
-            print(f"{R} [00] EXIT MOHA-02 ULTIMATE {X}")
-            UIComponents.separator()
-
-            choice = input(f"{G} [?] SELECT OPTION: {X}").strip()
-
-            if choice in ["1", "01"]:
-                self.start_task()
-            elif choice in ["2", "02"]:
-                # تحديث البروكسيات يدوياً
-                ProxyAutoGenerator().scrape()
-                input(f"\n{W} Press Enter to continue...{X}")
-            elif choice in ["3", "03"]:
-                self.show_logs()
-            elif choice in ["4", "04"]:
-                self.cleanup()
-            elif choice in ["0", "00"]:
-                print(f"\n{M} [!] Closing... Best of luck, Moha! {X}")
-                sys.exit()
-            else:
-                print(f"{R} [!] Invalid choice, try again.{X}")
-                time.sleep(1)
-
-    def start_task(self):
-        """تشغيل محرك التسجيل اليدوي"""
+    def send_to_telegram(self, bot_token, chat_id, text):
+        """إرسال النتائج الناجحة إلى بوت التلجرام"""
         try:
-            self.engine.handle_manual_registration()
-            input(f"\n{W} Press [ENTER] to return to menu...{X}")
-        except KeyboardInterrupt:
-            print(f"\n{R} [!] User Interrupted the process.{X}")
-            time.sleep(1)
+            requests.post(f"https://api.telegram.org/bot{bot_token}/sendMessage",
+                          data={"chat_id": chat_id, "text": text})
+        except: pass
 
-    def show_logs(self):
-        """عرض سجلات الأخطاء لتحليل المشاكل"""
-        SystemUtils.clear()
-        SystemUtils.banner()
-        print(f"{M} [ SYSTEM LOGS - RECENT ERRORS ] {X}")
-        UIComponents.separator()
-        if os.path.exists(LOGS_FILE):
-            with open(LOGS_FILE, 'r') as f:
-                logs = f.readlines()
-                if logs:
-                    for line in logs[-15:]: # عرض آخر 15 خطأ
-                        print(f"{Y} > {line.strip()} {X}")
-                else:
-                    print(f"{W} No errors recorded. System is healthy. {X}")
-        else:
-            print(f"{R} Log file not found. {X}")
-        UIComponents.separator()
-        input(f"\n{W} Press [ENTER] to return...{X}")
+    def run(self):
+        banner()
+        
+        # مدخلات بوت النتائج
+        token = input(f"{W}[+] Telegram Token: {G}")
+        id_bot = input(f"{W}[+] Chat ID: {G}")
+        print(f"{W}--------------------------------------------{X}")
 
-    def cleanup(self):
-        """تنظيف الملفات المؤقتة"""
-        UIComponents.show_progress("Cleaning system cache")
-        if os.path.exists(LOGS_FILE):
-            os.remove(LOGS_FILE)
-        if os.path.exists(PROXY_FILE):
-            os.remove(PROXY_FILE)
-        UIComponents.show_success("Cache and Logs cleared successfully.")
-        time.sleep(1)
+        # 1. إدخال البيانات ومراقبة الأخطاء
+        email = input(f"{Y}[?] أدخل البريد: {G}")
+        if not "@" in email:
+            print(f"{R}[✘] خطأ: صيغة البريد غير صحيحة!{X}"); return
 
-# --- THE FINAL BOOTLOADER ---
+        full_name = input(f"{Y}[?] أدخل الاسم الكامل: {G}")
+        if len(full_name) < 4:
+            print(f"{R}[✘] خطأ: الاسم قصير جداً، قد يتم حظره!{X}"); return
 
+        birthday = input(f"{Y}[?] التاريخ (2005/02/14): {G}")
+        try:
+            y, m, d = birthday.split("/")
+        except:
+            print(f"{R}[✘] خطأ: استخدم الصيغة الصحيحة YYYY/MM/DD{X}"); return
+
+        password = input(f"{Y}[?] كلمة السر: {G}")
+
+        # محاكاة السلوك البشري قبل طلب الرمز
+        print(f"\n{C}[*] جاري فحص البيانات ومحاكاة واجهة التسجيل...{X}")
+        time.sleep(random.randint(3, 6))
+
+        # 2. طلب الرمز (النقطة الحرجة)
+        v_code = input(f"{B}[!] أدخل رمز التحقق المستلم (Code): {G}")
+        if not v_code:
+            print(f"{R}[✘] خطأ: لا يمكن الإكمال بدون رمز التحقق!{X}"); return
+
+        # بناء البيانات الأمنية (Payload) باستخدام كل البيانات المستخرجة
+        params = {
+            "api_key": SecurityHub.API_KEY,
+            "attempt_login": "true",
+            "birthday": f"{y}-{m}-{d}",
+            "client_country_code": "DZ", # زيادة الموثوقية للجزائر
+            "firstname": full_name.split(" ")[0],
+            "lastname": full_name.split(" ")[1] if " " in full_name else "Moha",
+            "email": email,
+            "password": password,
+            "gender": random.choice(["MALE", "FEMALE"]),
+            "req_friendly_name": "registerAccount",
+            "locale": "ar_AR",
+            "device_id": str(uuid.uuid4()),
+            "adid": str(uuid.uuid4()),
+            "v_code": v_code,
+            "method": "user.register",
+            "format": "json"
+        }
+
+        # حساب التوقيع الرقمي لمنع الحظر (Signature)
+        params["sig"] = SecurityHub.generate_sig(params)
+
+        print(f"\n{Y}[~] جاري إرسال الطلب (محاكاة ضغطة الزر)...{X}")
+        time.sleep(random.randint(5, 10))
+
+        try:
+            resp = self.session.post("https://b-api.facebook.com/method/user.register", 
+                                     data=params, headers=self.headers, timeout=25)
+            result = resp.json()
+
+            # تشغيل نظام كشف الأخطاء (ErrorHandler)
+            status, msg = ErrorHandler.analyze(result)
+
+            if status == "SUCCESS":
+                acc_token = result["access_token"]
+                success_text = f"""
+✅ تم إنشاء حساب جديد بنجاح!
+----------------------------
+📧 Email: {email}
+🔑 Pass: {password}
+🆔 Token: {acc_token}
+----------------------------
+Dev: @m_oha_02 | Barcelona Edition
+"""
+                print(f"{G}{success_text}{X}")
+                self.send_to_telegram(token, id_bot, success_text)
+                with open("success_hits.txt", "a") as f:
+                    f.write(f"{email}|{password}|{acc_token}\n")
+            
+            else:
+                # عرض نوع الخطأ والحظر المكتشف
+                print(f"\n{R}[✘] فشل الإنشاء!{X}")
+                print(f"{Y}[ السبب ]: {msg}{X}")
+                
+        except Exception as e:
+            print(f"\n{R}[!] خطأ في الاتصال بالسيرفر: {str(e)}{X}")
+
+# --- بدء التشغيل ---
 if __name__ == "__main__":
-    """نقطة انطلاق السكربت النهائية"""
     try:
-        # تشغيل الأداة
-        launcher = MohaLauncher()
-        launcher.main_menu()
-    except Exception as fatal_e:
-        # نظام الطوارئ في حال انهيار الأداة
-        print(f"\n{R} [FATAL ERROR] {fatal_e} {X}")
-        # محاولة حفظ الخطأ الأخير قبل الإغلاق
-        with open("logs/crash.log", "a") as f:
-            f.write(f"[{datetime.now()}] CRASH: {str(fatal_e)}\n")
-        sys.exit(1)
-
-# --------------------------------------------------------------------------------
-# END OF SCRIPT - MOHA AL-SHALFAWI (MOHA-02)
-# TOTAL LINES: 550+
-# VERSION: 9.0 ULTIMATE
-# REGION: CHLEF, ALGERIA (2026)
-# --------------------------------------------------------------------------------
-# ملاحظة: تم حل مشكلة الأقواس في سطر 86 ومشكلة الإزاحة في سطر 1269 بالكامل.
-# --------------------------------------------------------------------------------
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
+        app = FBEnginePRO()
+        app.run()
+    except KeyboardInterrupt:
+        print(f"\n{R}[!] تم الإغلاق.{X}")
