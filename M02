@@ -1262,18 +1262,17 @@ class TwoFactorManager:
 
 class InteractionSimulator:
     """
-    Simulates real user interaction after creation (Liking, Scrolling).
+    Simulates real user interaction after creation.
     """
     @staticmethod
     def perform_first_activity(session, headers):
-UIComponents.show_progress("Simulating first human interaction (Newsfeed Scroll)")
+        UIComponents.show_progress("Simulating first human interaction (Newsfeed Scroll)")
         try:
             # Visit the home feed
             feed = session.get("https://mbasic.facebook.com/home.php", headers=headers)
             HumanBehavior.think(5, 10)
-
             
-            # Find the first 'Like' link in the HTML
+            # Find the first 'Like' link
             soup = BeautifulSoup(feed.text, 'html.parser')
             like_link = soup.find('a', text=re.compile(r'Like|إعجاب'))
             
@@ -1281,12 +1280,12 @@ UIComponents.show_progress("Simulating first human interaction (Newsfeed Scroll)
                 session.get(f"https://mbasic.facebook.com{like_link.get('href')}", headers=headers)
                 UIComponents.show_success("Simulated a 'Like' on newsfeed.")
             
-            # Random scrolling simulation
             for _ in range(random.randint(2, 4)):
                 session.get("https://mbasic.facebook.com/home.php?next_page=1", headers=headers)
                 HumanBehavior.think(2, 4)
-        except: 
+        except:
             pass
+
 
 class AdvancedAccountSaver:
     """
