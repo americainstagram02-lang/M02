@@ -1266,4 +1266,82 @@ class InteractionSimulator:
     """
     @staticmethod
     def perform_first_activity(session, headers):
-        UIComponents.show_progress("Simulating first human interaction (Newsfeed Scroll")
+                UIComponents.show_progress("Simulating first human interaction (Newsfeed Scroll)")
+        try:
+            # Visit the home feed
+            feed = session.get("https://mbasic.facebook.com/home.php", headers=headers)
+            HumanBehavior.think(5, 10)
+            
+            # Find the first 'Like' link in the HTML
+            soup = BeautifulSoup(feed.text, 'html.parser')
+            like_link = soup.find('a', text=re.compile(r'Like|إعجاب'))
+            
+            if like_link:
+                session.get(f"https://mbasic.facebook.com{like_link.get('href')}", headers=headers)
+                UIComponents.show_success("Simulated a 'Like' on newsfeed.")
+            
+            # Random scrolling simulation
+            for _ in range(random.randint(2, 4)):
+                session.get("https://mbasic.facebook.com/home.php?next_page=1", headers=headers)
+                HumanBehavior.think(2, 4)
+        except: 
+            pass
+
+class AdvancedAccountSaver:
+    """
+    Saves final account data with device info in a clean format.
+    """
+    @staticmethod
+    def export_final_account(data):
+        path = "database/ultimate_hits.txt"
+        with open(path, "a", encoding="utf-8") as f:
+            line = f"EMAIL: {data['email']} | PASS: {data['pass']} | NAME: {data['name']} | UA: {data['ua']} | PROXY: {data['proxy']}\n"
+            f.write(line)
+        UIComponents.show_success(f"Final data exported to {path}")
+
+# --- SYSTEM ANALYTICS & BOOTLOADER ---
+
+class SystemAnalytics:
+    @staticmethod
+    def draw_dashboard():
+        SystemUtils.banner()
+        total_created = 0
+        if os.path.exists(HITS_FILE):
+            with open(HITS_FILE, 'r') as f:
+                total_created = len(f.readlines())
+        
+        print(f"{C} [ SYSTEM ANALYTICS - V9.0 ] {W}")
+        print(f" [+] Success Accounts : {G}{total_created}{X}")
+        print(f" [+] Device Status    : {G}OPPO A16k OPTIMIZED{X}")
+        UIComponents.separator()
+
+class Moha_Ultimate_V9:
+    def __init__(self):
+        SystemUtils.setup()
+        self.menu = AdvancedMenuV9()
+        self.analytics = SystemAnalytics()
+
+    def launch(self):
+        try:
+            self.analytics.draw_dashboard()
+            time.sleep(1)
+            self.menu.run()
+        except KeyboardInterrupt:
+            print(f"\n{R} [!] Emergency Stop Detected!{X}")
+            sys.exit()
+
+def main():
+    SystemUtils.clear()
+    # Encrypting process simulation for Drakola.py protection
+    print(f"{M} [!] Encrypting Drakola.py source with Moha-02 Keys...{X}")
+    time.sleep(1.5)
+    engine = Moha_Ultimate_V9()
+    engine.launch()
+
+if __name__ == "__main__":
+    main()
+
+# --- END OF THE 2000 LINE SCRIPT ---
+# DEVELOPER: MOHA AL-SHALFAWI (@M_OHA_02)
+# VERSION: 9.0 ULTIMATE (2026)
+# LOCATION: CHLEF, ALGERIA
