@@ -42,7 +42,7 @@ class UIComponents:
         for i in range(10):
             # تم تبسيط السطر تماماً لتجنب أي خطأ في الأقواس
             char = chars[i % len(chars)]
-            sys.stdout.write(f"\r{Y} [{char}] {X}{text}...")
+            sys.stdout.write(f"\r{Y} [{char}] {text}")
             sys.stdout.flush()
             time.sleep(0.1)
         print()
@@ -251,7 +251,7 @@ class SystemDiagnostics:
 class MohaLauncher:
     """المتحكم الرئيسي في واجهة الأداة والربط بين الأجزاء"""
     def __init__(self):
-        SystemUtils.setup()
+        # SystemUtils.setup()
         self.engine = RegistrationEngine()
         self.diagnostics = SystemDiagnostics()
 
