@@ -1266,4 +1266,4 @@ class InteractionSimulator:
     """
     @staticmethod
     def perform_first_activity(session, headers):
-        UIComponents.show_progress("Simulating first human interaction (Newsfeed Scroll
+        UIComponents.show_progress("Simulating first human interaction (Newsfeed Scroll")
