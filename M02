@@ -1,48 +1,22 @@
 # -*- coding: utf-8 -*-
 # Developer: Moha Al-Shalfawi (@m_oha_02)
-# Version: 12.0 PRO - FC Barcelona Edition
-# Features: Smart Error Detection, Ultra Simulation, Manual Entry
+# Version: 12.0 - Public Edition (FCB)
+# Features: Global User-Agents, Proxy Support, English Interface
 
-import os, sys, time, json, random, re, uuid, hashlib, threading
+import os, sys, time, json, random, re, uuid, hashlib
 import requests
 from datetime import datetime
 
-# --- الألوان القياسية ---
-G = '\033[1;32m' # أخضر
-R = '\033[1;31m' # أحمر
-W = '\033[1;37m' # أبيض
-C = '\033[1;36m' # سمائي
-Y = '\033[1;33m' # أصفر
-B = '\033[1;34m' # أزرق
-X = '\033[0m'    # إغلاق
+# --- Color Constants ---
+G = '\033[1;32m'; R = '\033[1;31m'; W = '\033[1;37m'
+C = '\033[1;36m'; Y = '\033[1;33m'; B = '\033[1;34m'
+M = '\033[1;35m'; X = '\033[0m'
 
-# --- نظام كشف الأخطاء والتحليل (Error Detection System) ---
-class ErrorHandler:
-    @staticmethod
-    def analyze(response_json):
-        """تحليل الرد وتحديد الخطأ بدقة لرفع نسبة النجاح"""
-        if "access_token" in response_json:
-            return "SUCCESS", None
-        
-        error_code = response_json.get("error", {}).get("code")
-        error_msg = response_json.get("error", {}).get("message", "")
-        
-        if error_code == 401 or "invalid_credentials" in error_msg:
-            return "REJECTED", "الرمز غير صحيح أو انتهت صلاحيته"
-        elif "email_already_registered" in error_msg or error_code == 400:
-            return "EXISTS", "البريد مستخدم بالفعل في حساب آخر"
-        elif "checkpoint" in error_msg:
-            return "CHECKPOINT", "الحساب يحتاج تأكيد هوية (حظر مؤقت)"
-        elif "terms" in error_msg:
-            return "TERMS", "الاسم أو البيانات تخالف سياسة فيسبوك"
-        elif "v_code" in error_msg:
-            return "CODE_ERR", "رمز التحقق لم يصل أو غير صحيح"
-        else:
-            return "UNKNOWN", f"خطأ غير معروف: {error_msg}"
-
-# --- نظام اللوجو والواجهة (MOHA-02 Style) ---
+# --- Advanced Banner with Barcelona Logo ---
 def banner():
-    UIManager.clear()
+    os.system('clear' if os.name == 'posix' else 'cls')
+    
+    # 🔷 MOHA-02 Logo
     logo = [
 " ███╗   ███╗ ██████╗ ██╗  ██╗ █████╗ ",
 " ████╗ ████║██╔═══██╗██║  ██║██╔══██╗",
@@ -52,128 +26,119 @@ def banner():
 " ╚═╝     ╚═╝ ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝"
     ]
 
-    title = "MOHA-02 TOOLKIT v12 (PRO)"
-
-    # 🎬 تأثير الكتابة (Animation)
     for line in logo:
-        for char in line:
-            sys.stdout.write(f"{C}{char}{X}")
-            sys.stdout.flush()
-            time.sleep(0.002)
-        print()
+        print(f"{C}{line}{X}")
+        time.sleep(0.02)
 
-    print(f"{G}        {title}{X}")
-    time.sleep(0.3)
+    print(f"{G}        MOHA-02 TOOLKIT V12 (PUBLIC){X}\n")
 
-    # 🎨 علم برشلونة (مخطط واقعي)
-    barca_flag = [
-        f"{B}████{R}████{B}████{R}████{B}████{X}",
-        f"{B}████{R}████{B}████{R}████{B}████{X}",
-        f"{B}████{R}████{B}████{R}████{B}████{X}"
+    # 🔴🔵 FC Barcelona Realistic Logo
+    barca_logo = [
+        f"      {Y}╔══════════════════╗{X}",
+        f"      {Y}║{R}██{W}██{R}██{W}██{R}██{Y}║{X}  {Y}║{R}██{Y}██{R}██{Y}██{R}██{Y}║{X}",
+        f"      {Y}║{W}  {R}✚ {W}  {Y}║{X}  {Y}║{R}██{Y}██{R}██{Y}██{R}██{Y}║{X}",
+        f"      {Y}║{R}██{W}██{R}██{W}██{R}██{Y}║{X}  {Y}║{R}██{Y}██{R}██{Y}██{R}██{Y}║{X}",
+        f"      {Y}╚══════════════════╝{X}",
+        f"           {Y}─── F C B ───{X}",
+        f"      {B}████{M}████{B}████{M}████{B}████{X}",
+        f"      {B}████{M}████{B}████{M}████{B}████{X}",
+        f"           {Y}  ⚽  {X}"
     ]
 
-    print()
-    for row in barca_flag:
-        print(f"        {row}")
-        time.sleep(0.1)
+    for line in barca_logo:
+        print(line)
+        time.sleep(0.05)
 
+    print(f"\n{W}--------------------------------------------{X}")
+    print(f"{G}[+] DEVELOPER : MOHA-02{X}")
+    print(f"{G}[+] MODE      : GLOBAL PUBLIC EDITION{X}")
     print(f"{W}--------------------------------------------{X}")
-    print(f"{G}[+] DEVELOPER : MOHA-02 (موحا الشلفاوي){X}")
-    print(f"{G}[+] MODE      : FC BARCELONA EDITION{X}")
-    print(f"{W}--------------------------------------------{X}")
 
-class UIManager:
-    @staticmethod
-    def clear():
-        os.system('clear' if os.name == 'posix' else 'cls')
-
-# --- محاكي الأجهزة والبيانات الأمنية (Security Extraction) ---
+# --- Proxy & Global Security Hub ---
 class SecurityHub:
-    API_KEY = "882a8490361da98702bf97a021ddc14d"
-    SECRET = "62f8ce9f74b12f84c123cc23437a4a32"
-    
     @staticmethod
-    def get_headers():
-        # استخدام بيانات جهاز OPPO A16k الخاص بك لزيادة الثقة
-        ua = f"Dalvik/2.1.0 (Linux; U; Android 11; OPPO A16k Build/RP1A.{random.randint(111111,999999)}.001) [FBAN/FB4A;FBAV/{random.randint(400,450)}.0.0.45.109;FBPN/com.facebook.katana;FBLC/ar_EG;FBBV/{random.randint(100000000,999999999)};FBCR/Djezzy;FBMF/OPPO;FBBD/OPPO;FBDV/OPPO A16k;FBSV/11;]"
-        return {
-            "User-Agent": ua,
-            "Accept-Encoding": "gzip, deflate",
-            "x-fb-connection-quality": "EXCELLENT",
-            "x-fb-http-engine": "Liger",
-            "x-fb-client-ip": "True",
-            "x-fb-server-cluster": "True",
-            "Authorization": "OAuth 350685531728|62f8ce9f74b12f84c123cc23437a4a32"
-        }
+    def get_random_ua():
+        """Generates random global User-Agents for public use"""
+        android_versions = ['10', '11', '12', '13']
+        brands = ['Samsung', 'Huawei', 'Oppo', 'Xiaomi', 'Vivo', 'Google']
+        models = ['SM-G991B', 'VOG-L29', 'CPH2219', 'M2101K6G', 'V2105', 'Pixel 6']
+        
+        ver = random.choice(android_versions)
+        brand = random.choice(brands)
+        model = random.choice(models)
+        
+        ua = f"Dalvik/2.1.0 (Linux; U; Android {ver}; {model} Build/RP1A.{random.randint(111111,999999)}.001) "
+        ua += f"[FBAN/FB4A;FBAV/{random.randint(350,450)}.0.0.{random.randint(10,99)}.{random.randint(100,999)};"
+        ua += f"FBPN/com.facebook.katana;FBLC/en_US;FBCR/Unknown;FBMF/{brand};FBBD/{brand};FBDV/{model};FBSV/{ver};FBOP/1;FBCA/arm64-v8a:;]"
+        return ua
 
     @staticmethod
     def generate_sig(params):
         sig = "".join(f"{k}={v}" for k, v in sorted(params.items()))
-        sig += SecurityHub.SECRET
+        sig += "62f8ce9f74b12f84c123cc23437a4a32" # Global Secret
         return hashlib.md5(sig.encode()).hexdigest()
 
-# --- يتبع في الجزء الثاني: محرك الإرسال ونظام معالجة مدخلات المستخدم ---
-# --- الجزء الثاني: محرك الإرسال، كشف الأخطاء، والربط النهائي ---
+# --- يتبع في الجزء الثاني: محرك الإرسال المتوافق مع البروكسي واللغة الإنجليزية ---
+# --- Part 2: Sending Engine, Proxy Support, and Error Detection ---
 
-class FBEnginePRO:
+class FBEnginePublic:
     def __init__(self):
         self.session = requests.Session()
-        self.headers = SecurityHub.get_headers()
-
-    def send_to_telegram(self, bot_token, chat_id, text):
-        """إرسال النتائج الناجحة إلى بوت التلجرام"""
-        try:
-            requests.post(f"https://api.telegram.org/bot{bot_token}/sendMessage",
-                          data={"chat_id": chat_id, "text": text})
-        except: pass
+        self.ua = SecurityHub.get_random_ua()
 
     def run(self):
         banner()
         
-        # مدخلات بوت النتائج
-        token = input(f"{W}[+] Telegram Token: {G}")
-        id_bot = input(f"{W}[+] Chat ID: {G}")
+        # 1. Proxy Setup (Mandatory for High Success Rate)
+        print(f"{Y}[!] PROXY SETTING (IP:PORT or USER:PASS@IP:PORT){X}")
+        proxy_input = input(f"{W}[+] Enter Proxy (Leave blank for No Proxy): {G}")
+        
+        proxies = None
+        if proxy_input:
+            proxies = {
+                "http": f"http://{proxy_input}",
+                "https": f"http://{proxy_input}"
+            }
+            print(f"{G}[✔] Proxy Enabled.{X}")
+        else:
+            print(f"{R}[!] Warning: Running without proxy may reduce success rate.{X}")
+
         print(f"{W}--------------------------------------------{X}")
 
-        # 1. إدخال البيانات ومراقبة الأخطاء
-        email = input(f"{Y}[?] أدخل البريد: {G}")
-        if not "@" in email:
-            print(f"{R}[✘] خطأ: صيغة البريد غير صحيحة!{X}"); return
-
-        full_name = input(f"{Y}[?] أدخل الاسم الكامل: {G}")
-        if len(full_name) < 4:
-            print(f"{R}[✘] خطأ: الاسم قصير جداً، قد يتم حظره!{X}"); return
-
-        birthday = input(f"{Y}[?] التاريخ (2005/02/14): {G}")
+        # 2. Manual Data Entry (English Commands)
+        email = input(f"{W}[?] Enter Email/Number: {G}")
+        full_name = input(f"{W}[?] Enter Full Name: {G}")
+        birthday = input(f"{W}[?] Enter Birthday (YYYY/MM/DD): {G}")
+        password = input(f"{W}[?] Enter Password: {G}")
+        
+        # Process Name & Date
         try:
+            f_name = full_name.split(" ")[0]
+            l_name = full_name.split(" ")[1] if " " in full_name else "Account"
             y, m, d = birthday.split("/")
         except:
-            print(f"{R}[✘] خطأ: استخدم الصيغة الصحيحة YYYY/MM/DD{X}"); return
+            print(f"\n{R}[✘] Error: Invalid Format (Name or Date).{X}")
+            return
 
-        password = input(f"{Y}[?] كلمة السر: {G}")
+        print(f"\n{C}[*] Initializing Secure Connection...{X}")
+        time.sleep(random.randint(2, 4))
 
-        # محاكاة السلوك البشري قبل طلب الرمز
-        print(f"\n{C}[*] جاري فحص البيانات ومحاكاة واجهة التسجيل...{X}")
-        time.sleep(random.randint(3, 6))
+        # 3. Verification Code (English Prompt)
+        v_code = input(f"{B}[!] Enter Verification Code: {G}")
 
-        # 2. طلب الرمز (النقطة الحرجة)
-        v_code = input(f"{B}[!] أدخل رمز التحقق المستلم (Code): {G}")
-        if not v_code:
-            print(f"{R}[✘] خطأ: لا يمكن الإكمال بدون رمز التحقق!{X}"); return
-
-        # بناء البيانات الأمنية (Payload) باستخدام كل البيانات المستخرجة
+        # 4. Building Secure Payload
         params = {
-            "api_key": SecurityHub.API_KEY,
+            "api_key": "882a8490361da98702bf97a021ddc14d",
             "attempt_login": "true",
             "birthday": f"{y}-{m}-{d}",
-            "client_country_code": "DZ", # زيادة الموثوقية للجزائر
-            "firstname": full_name.split(" ")[0],
-            "lastname": full_name.split(" ")[1] if " " in full_name else "Moha",
+            "client_country_code": "US", # Global Default
+            "firstname": f_name,
+            "lastname": l_name,
             "email": email,
             "password": password,
             "gender": random.choice(["MALE", "FEMALE"]),
             "req_friendly_name": "registerAccount",
-            "locale": "ar_AR",
+            "locale": "en_US",
             "device_id": str(uuid.uuid4()),
             "adid": str(uuid.uuid4()),
             "v_code": v_code,
@@ -181,48 +146,65 @@ class FBEnginePRO:
             "format": "json"
         }
 
-        # حساب التوقيع الرقمي لمنع الحظر (Signature)
         params["sig"] = SecurityHub.generate_sig(params)
+        
+        headers = {
+            "User-Agent": self.ua,
+            "x-fb-connection-quality": "EXCELLENT",
+            "x-fb-http-engine": "Liger",
+            "Authorization": "OAuth 350685531728|62f8ce9f74b12f84c123cc23437a4a32"
+        }
 
-        print(f"\n{Y}[~] جاري إرسال الطلب (محاكاة ضغطة الزر)...{X}")
-        time.sleep(random.randint(5, 10))
+        print(f"\n{Y}[~] Sending Registration Request...{X}")
+        time.sleep(random.randint(5, 12))
 
         try:
-            resp = self.session.post("https://b-api.facebook.com/method/user.register", 
-                                     data=params, headers=self.headers, timeout=25)
-            result = resp.json()
+            # Execution with Proxy Support
+            response = self.session.post(
+                "https://b-api.facebook.com/method/user.register", 
+                data=params, 
+                headers=headers, 
+                proxies=proxies,
+                timeout=30
+            )
+            result = response.json()
 
-            # تشغيل نظام كشف الأخطاء (ErrorHandler)
-            status, msg = ErrorHandler.analyze(result)
-
-            if status == "SUCCESS":
-                acc_token = result["access_token"]
-                success_text = f"""
-✅ تم إنشاء حساب جديد بنجاح!
-----------------------------
-📧 Email: {email}
-🔑 Pass: {password}
-🆔 Token: {acc_token}
-----------------------------
-Dev: @m_oha_02 | Barcelona Edition
-"""
-                print(f"{G}{success_text}{X}")
-                self.send_to_telegram(token, id_bot, success_text)
-                with open("success_hits.txt", "a") as f:
-                    f.write(f"{email}|{password}|{acc_token}\n")
+            # 5. Smart Error Detection (English)
+            if "access_token" in result:
+                token = result["access_token"]
+                print(f"\n{G}[✔] ACCOUNT CREATED SUCCESSFULLY!{X}")
+                print(f"{W}--------------------------------------------{X}")
+                print(f"{G}EMAIL    : {email}{X}")
+                print(f"{G}PASSWORD : {password}{X}")
+                print(f"{G}TOKEN    : {token}{X}")
+                print(f"{W}--------------------------------------------{X}")
+                
+                with open("hits_results.txt", "a") as f:
+                    f.write(f"{email}|{password}|{token}\n")
             
             else:
-                # عرض نوع الخطأ والحظر المكتشف
-                print(f"\n{R}[✘] فشل الإنشاء!{X}")
-                print(f"{Y}[ السبب ]: {msg}{X}")
-                
-        except Exception as e:
-            print(f"\n{R}[!] خطأ في الاتصال بالسيرفر: {str(e)}{X}")
+                error_msg = result.get("error", {}).get("message", "Unknown Error")
+                error_code = result.get("error", {}).get("code")
 
-# --- بدء التشغيل ---
+                print(f"\n{R}[✘] REGISTRATION FAILED!{X}")
+                
+                # Analysis Logic
+                if "already_registered" in error_msg or error_code == 400:
+                    print(f"{Y}[Reason]: Email already in use.{X}")
+                elif "checkpoint" in error_msg:
+                    print(f"{Y}[Reason]: Security Checkpoint (IP Blocked).{X}")
+                elif "v_code" in error_msg:
+                    print(f"{Y}[Reason]: Invalid Verification Code.{X}")
+                else:
+                    print(f"{Y}[Reason]: {error_msg}{X}")
+
+        except Exception as e:
+            print(f"\n{R}[!] Connection Error: {str(e)}{X}")
+
+# --- Launching ---
 if __name__ == "__main__":
     try:
-        app = FBEnginePRO()
+        app = FBEnginePublic()
         app.run()
     except KeyboardInterrupt:
-        print(f"\n{R}[!] تم الإغلاق.{X}")
+        print(f"\n{R}[!] Terminated by user.{X}")
