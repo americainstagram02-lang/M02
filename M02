@@ -202,7 +202,7 @@ class MohaAppController:
 
         
         # نجرب الفحص على فيسبوك أولاً كونه البوابة الأسهل
-            def worker(self, email, password):
+        def worker(self, email, password):
         # ... الكود القديم ...
         res = self.checker.check_facebook(email, password)
         
