@@ -196,7 +196,7 @@ class MohaAppController:
         print(f" {G}[✔] {W}Scan Completed! | Found: {G}{len(self.checker.oks)}")
         input(f" {Y}[!] {W}Press Enter to save hits to 'results.txt'...")
 
-    worker(self, email, password):
+    
         """العامل الذي يقوم بالتنفيذ الفعلي"""
         sys.stdout.write(f"\r {W}[MOHA-SCAN] {self.total_checked} | {G}OK:{len(self.checker.oks)} {Y}CP:{len(self.checker.cps)}{X}")
 
