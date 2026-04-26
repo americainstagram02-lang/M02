@@ -198,10 +198,6 @@ class MohaAppController:
 
     
         """العامل الذي يقوم بالتنفيذ الفعلي"""
-        sys.stdout.write(f"\r {W}[MOHA-SCAN] {self.total_checked} | {G}OK:{len(self.checker.oks)} {Y}CP:{len(self.checker.cps)}{X}")
-
-        
-        # نجرب الفحص على فيسبوك أولاً كونه البوابة الأسهل
             def worker(self, email, password):
         """العامل الذي يقوم بالتنفيذ الفعلي"""
         sys.stdout.write(f"\r {W}[MOHA-SCAN] {self.total_checked} | {G}OK:{len(self.checker.oks)} {Y}CP:{len(self.checker.cps)}{X}")
@@ -220,6 +216,7 @@ class MohaAppController:
                 f.write(f"{email}|{password}\n")
         
         self.total_checked += 1
+
 
 
 # --- نهاية الجزء الثاني (400 سطر إجمالي) ---
