@@ -199,7 +199,7 @@ class MohaAppController:
     def worker(self, email, password):
         """العامل الذي يقوم بالتنفيذ الفعلي"""
         sys.stdout.write(f"\r {W}[MOHA-SCAN] {self.total_checked} | {G}OK:{len(self.checker.oks)} {Y}CP:{len(self.checker.cps)}{X}")
-        sys.stdout.flush()
+
         
         # نجرب الفحص على فيسبوك أولاً كونه البوابة الأسهل
         res = self.checker.check_facebook(email, password)
